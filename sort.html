@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محاكاة بصرية لخوارزميات الترتيب</title>
+    <!-- تحميل Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap");
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: #f3f4f6;
+      }
+      /* تصميم الحاوية لتشمل العناصر والمؤشرات */
+      .array-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end; /* وضع الأعمدة على خط واحد في الأسفل */
+        margin-top: 20px;
+        min-height: 150px; /* ليتسع للأعمدة والمؤشرات */
+        flex-wrap: wrap;
+        padding-bottom: 30px; /* مساحة للمؤشرات */
+      }
+      .element-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 4px;
+        position: relative;
+        height: 150px; /* طول ثابت للحاوية */
+        justify-content: flex-end;
+      }
+      .array-element {
+        width: 30px; /* عرض ثابت للعمود */
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        font-weight: bold;
+        border-radius: 6px 6px 0 0;
+        transition: all 0.3s ease-out; /* حركة سلسة */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        font-size: 0.8rem;
+        color: white;
+        padding-top: 5px;
+      }
+      .index-label {
+        position: absolute;
+        bottom: -20px;
+        font-size: 0.75rem;
+        color: #4b5563;
+      }
+      .marker-label {
+        font-size: 0.65rem;
+        font-weight: bold;
+        padding: 2px 4px;
+        border-radius: 4px;
+        position: absolute;
+        top: -20px; /* وضع المؤشر فوق العنصر */
+        color: white;
+        z-index: 10;
+      }
+
+      /* الألوان المستخدمة */
+      .default-bg {
+        background-color: #60a5fa;
+      } /* Blue-400 */
+      .comparing-bg {
+        background-color: #fcd34d;
+      } /* Amber-300 - مقارنة */
+      .swapping-bg {
+        background-color: #f87171;
+      } /* Red-400 - تبديل */
+      .sorted-bg {
+        background-color: #10b981;
+      } /* Green-500 - مرتب */
+      .min-bg {
+        background-color: #9333ea;
+      } /* Violet-600 - أقل قيمة (Selection) */
+      .current-bg {
+        background-color: #fb923c;
+      } /* Orange-400 - العنصر الحالي (Selection) */
+
+      /* تصميم الجدول للخطوات */
+      .steps-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .steps-table th,
+      .steps-table td {
+        border: 1px solid #d1d5db;
+        padding: 8px;
+        text-align: center;
+        font-size: 0.875rem;
+      }
+      .steps-table th {
+        background-color: #4f46e5;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+      }
+      .steps-table tr:nth-child(even) {
+        background-color: #f3f4f6;
+      }
+      .steps-log-container {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 md:p-10">
+      <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">
+        محاكاة بصرية تفاعلية لخوارزميات الترتيب
+      </h1>
+
+      <!-- قسم الإعدادات والتحكم -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
+          إعدادات المحاكاة
+        </h2>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+          <div class="flex-1">
+            <label
+              for="algorithmSelect"
+              class="block text-sm font-medium text-gray-700"
+              >اختر خوارزمية الترتيب:</label
+            >
+            <select
+              id="algorithmSelect"
+              class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+              onchange="resetSort(true)"
+            >
+              <option value="bubble">ترتيب الفقاعة (Bubble Sort)</option>
+              <option value="selection">ترتيب الاختيار (Selection Sort)</option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label
+              for="arrayInput"
+              class="block text-sm font-medium text-gray-700"
+              >المصفوفة (أرقام مفصولة بفاصلة):</label
+            >
+            <input
+              type="text"
+              id="arrayInput"
+              value="50,20,80,10,60"
+              class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-left"
+              dir="ltr"
+              onchange="resetSort(true)"
+            />
+          </div>
+        </div>
+
+        <!-- أزرار التحكم في التنقل -->
+        <div class="flex flex-col sm:flex-row gap-2 mt-4">
+          <button
+            onclick="startSort()"
+            id="startButton"
+            class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 shadow-md"
+          >
+            ابدأ / الخطوة الأولى
+          </button>
+          <button
+            onclick="nextStep()"
+            id="nextButton"
+            class="flex-1 bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition duration-150 shadow-md disabled:opacity-50"
+            disabled
+          >
+            الخطوة التالية &raquo;
+          </button>
+          <button
+            onclick="previousStep()"
+            id="prevButton"
+            class="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold hover:bg-gray-600 transition duration-150 shadow-md disabled:opacity-50"
+            disabled
+          >
+            &laquo; الخطوة السابقة
+          </button>
+          <button
+            onclick="resetSort(true)"
+            class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 transition duration-150 shadow-md"
+          >
+            إعادة الضبط
+          </button>
+        </div>
+      </div>
+
+      <!-- عرض المصفوفة (الأعمدة) -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">
+          تمثيل المصفوفة:
+        </h2>
+        <div id="arrayContainer" class="array-container">
+          <!-- الأعمدة ستوضع هنا بواسطة JavaScript -->
+        </div>
+      </div>
+
+      <!-- منطقة الخطوات والنتائج -->
+      <div
+        class="p-4 bg-white rounded-lg border border-indigo-200 shadow-inner"
+      >
+        <h2 class="text-xl font-semibold text-indigo-700 mb-2">سجل الخطوات:</h2>
+        <p id="statusMessage" class="text-lg font-bold mb-4">
+          أدخل الأرقام واضغط على "ابدأ".
+        </p>
+        <div
+          id="stepsLog"
+          class="steps-log-container bg-gray-100 p-3 rounded-lg border border-gray-300"
+        >
+          <!-- سجل الخطوات يظهر هنا -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentArray = []; // المصفوفة التي يتم العمل عليها
+      let arrayContainer, stepsLog, statusMessage;
+      let currentStepIndex = -1; // الفهرس الحالي لخطوات المحاكاة
+      let simulationHistory = []; // تخزين حالة المحاكاة في كل خطوة
+      let isSortFinished = false;
+
+      // تهيئة الواجهة عند تحميل الصفحة
+      window.onload = function () {
+        arrayContainer = document.getElementById("arrayContainer");
+        stepsLog = document.getElementById("stepsLog");
+        statusMessage = document.getElementById("statusMessage");
+        resetSort(false); // تهيئة أولية
+      };
+
+      // ===============================================
+      // وظائف دعم الواجهة والمؤشرات
+      // ===============================================
+
+      // دالة لعرض المصفوفة في الواجهة كأعمدة
+      function renderArray({
+        array,
+        highlightIndex = -1,
+        highlightIndex2 = -1,
+        minIndex = -1,
+        sortedIndices = new Set(),
+        algorithm = "bubble",
+      } = {}) {
+        arrayContainer.innerHTML = "";
+
+        // تحديد قيمة قصوى لتعديل ارتفاع الأعمدة
+        const maxValue = Math.max(...array, 1);
+        const maxHeight = 100;
+
+        array.forEach((value, index) => {
+          const wrapper = document.createElement("div");
+          wrapper.classList.add("element-wrapper");
+
+          const element = document.createElement("div");
+          element.textContent = value;
+
+          // تحديد الارتفاع بناءً على القيمة
+          element.style.height = `${(value / maxValue) * maxHeight}px`;
+
+          let bgColorClass = "default-bg";
+          let markerText = "";
+          let markerColor = "";
+
+          // تحديد اللون
+          if (sortedIndices.has(index)) {
+            bgColorClass = "sorted-bg";
+          } else if (index === highlightIndex || index === highlightIndex2) {
+            // Bubble Sort: Comparing, Selection Sort: Current (i) and J
+            bgColorClass = "comparing-bg";
+          } else if (index === minIndex) {
+            bgColorClass = "min-bg";
+          }
+
+          // إضافة الفئة
+          element.classList.add("array-element", bgColorClass);
+
+          // إضافة مؤشر الفهرس في الأسفل
+          const indexLabel = document.createElement("div");
+          indexLabel.textContent = `[${index}]`;
+          indexLabel.classList.add("index-label");
+
+          wrapper.appendChild(element);
+          wrapper.appendChild(indexLabel);
+
+          // إضافة المؤشرات النصية (Top Markers)
+          if (algorithm === "bubble") {
+            if (index === highlightIndex) {
+              markerText = "Current J";
+              markerColor = "bg-red-500";
+            } else if (index === highlightIndex2) {
+              markerText = "Current J+1";
+              markerColor = "bg-red-700";
+            }
+          } else if (algorithm === "selection") {
+            if (index === highlightIndex) {
+              markerText = "Current i";
+              markerColor = "bg-orange-500";
+            } else if (index === highlightIndex2) {
+              markerText = "Current J";
+              markerColor = "bg-amber-500";
+            } else if (index === minIndex) {
+              markerText = "Min Index";
+              markerColor = "bg-purple-700";
+            }
+          }
+
+          if (markerText) {
+            const marker = document.createElement("span");
+            marker.textContent = markerText;
+            marker.classList.add("marker-label", markerColor);
+            wrapper.appendChild(marker);
+          }
+
+          arrayContainer.appendChild(wrapper);
+        });
+      }
+
+      // دالة لعرض رسالة خطأ مؤقتة (لتحل محل 'alert')
+      function showMessage(message, isError = false) {
+        const statusDiv = document.getElementById("statusMessage");
+        statusDiv.textContent = message;
+        statusDiv.className =
+          "text-lg font-bold mb-4 " +
+          (isError ? "text-red-600" : "text-green-600");
+      }
+
+      // تحديث حالة الأزرار
+      function updateControlButtons() {
+        document.getElementById("nextButton").disabled =
+          isSortFinished || currentStepIndex === simulationHistory.length - 1;
+        document.getElementById("prevButton").disabled = currentStepIndex <= 0;
+        document.getElementById("startButton").disabled = isSortFinished;
+
+        if (currentStepIndex === -1 && !isSortFinished) {
+          document.getElementById("startButton").textContent =
+            "ابدأ / الخطوة الأولى";
+        } else if (isSortFinished) {
+          document.getElementById("startButton").textContent = "انتهى الترتيب";
+          document.getElementById("nextButton").disabled = true;
+        } else {
+          document.getElementById("startButton").textContent = "تم البدء";
+        }
+      }
+
+      // عرض خطوات البحث في جدول
+      function renderSortTable(steps, algorithm) {
+        let headers = [];
+        if (algorithm === "bubble") {
+          headers = [
+            "الدورة (i)",
+            "المقارنة (j)",
+            "العنصر j",
+            "العنصر j+1",
+            "القرار",
+          ];
+        } else if (algorithm === "selection") {
+          headers = [
+            "الدورة (i)",
+            "المقارنة (j)",
+            "أقل قيمة حالية",
+            "قيمة العنصر j",
+            "القرار",
+          ];
+        }
+
+        let tableHTML = `<table class="steps-table rounded-lg shadow-lg overflow-hidden">
+                <thead><tr>`;
+        headers.forEach((h) => (tableHTML += `<th>${h}</th>`));
+        tableHTML += `</tr></thead><tbody>`;
+
+        // نعرض الخطوات بترتيب تنازلي (الأحدث أولاً)
+        for (let i = steps.length - 1; i >= 0; i--) {
+          const step = steps[i];
+          const rowClass = i === currentStepIndex ? "bg-yellow-200" : "";
+          const decisionClass = step.decision.includes("تبديل")
+            ? "text-red-700 font-bold"
+            : step.decision.includes("مرتب")
+            ? "text-green-700 font-bold"
+            : "text-gray-700";
+
+          tableHTML += `<tr class="${rowClass}">`;
+          if (algorithm === "bubble") {
+            tableHTML += `
+                        <td>${step.i}</td>
+                        <td class="font-mono">${step.j}</td>
+                        <td class="font-mono">${step.currentJValue}</td>
+                        <td class="font-mono">${step.nextJValue}</td>
+                    `;
+          } else if (algorithm === "selection") {
+            tableHTML += `
+                        <td>${step.i}</td>
+                        <td class="font-mono">${step.j}</td>
+                        <td class="font-mono">${step.minVal} (فهرس: ${step.minIdx})</td>
+                        <td class="font-mono">${step.currentJVal}</td>
+                    `;
+          }
+          tableHTML += `<td class="${decisionClass}">${step.decision}</td></tr>`;
+        }
+
+        tableHTML += "</tbody></table>";
+        stepsLog.innerHTML = tableHTML;
+      }
+
+      // ===============================================
+      // وظائف التنقل (Start, Next, Previous, Reset)
+      // ===============================================
+
+      function startSort() {
+        const algorithm = document.getElementById("algorithmSelect").value;
+
+        if (isSortFinished) {
+          resetSort(true);
+          return;
+        }
+
+        if (simulationHistory.length > 0) {
+          nextStep();
+          return;
+        }
+
+        // قراءة المصفوفة
+        const input = document.getElementById("arrayInput").value;
+        try {
+          currentArray = input.split(",").map((n) => {
+            const num = parseInt(n.trim());
+            if (isNaN(num)) throw new Error("Contains non-numeric values.");
+            return num;
+          });
+        } catch (e) {
+          showMessage("يرجى إدخال أرقام صحيحة مفصولة بفاصلة فقط.", true);
+          return;
+        }
+
+        if (currentArray.length < 2) {
+          showMessage("يجب أن تحتوي المصفوفة على عنصرين على الأقل.", true);
+          return;
+        }
+
+        // تهيئة الفرز
+        showMessage(
+          `بدء المحاكاة التفاعلية لخوارزمية ${
+            algorithm === "bubble" ? "ترتيب الفقاعة" : "ترتيب الاختيار"
+          }...`
+        );
+        isSortFinished = false;
+        simulationHistory = [];
+        currentStepIndex = -1;
+
+        if (algorithm === "bubble") {
+          bubbleSortSimulator(currentArray.slice()); // استخدام نسخة من المصفوفة
+        } else if (algorithm === "selection") {
+          selectionSortSimulator(currentArray.slice()); // استخدام نسخة من المصفوفة
+        }
+
+        nextStep();
+      }
+
+      function nextStep() {
+        if (currentStepIndex < simulationHistory.length - 1) {
+          currentStepIndex++;
+          updateVisualization();
+        }
+      }
+
+      function previousStep() {
+        if (currentStepIndex > 0) {
+          currentStepIndex--;
+          updateVisualization();
+        }
+      }
+
+      function resetSort(shouldClearMessage = true) {
+        currentStepIndex = -1;
+        simulationHistory = [];
+        isSortFinished = false;
+        stepsLog.innerHTML = "";
+
+        // قراءة المصفوفة الأولية من الإدخال
+        const input = document.getElementById("arrayInput").value;
+        try {
+          currentArray = input.split(",").map((n) => {
+            const num = parseInt(n.trim());
+            if (isNaN(num)) throw new Error("Contains non-numeric values.");
+            return num;
+          });
+        } catch (e) {
+          // إذا كان هناك خطأ في الإدخال، نستخدم مصفوفة افتراضية
+          currentArray = [50, 20, 80, 10, 60];
+        }
+
+        // عرض الحالة الأولية
+        renderArray({
+          array: currentArray,
+          sortedIndices: new Set(),
+          algorithm: document.getElementById("algorithmSelect").value,
+        });
+
+        if (shouldClearMessage) {
+          statusMessage.textContent = 'أدخل الأرقام واضغط على "ابدأ".';
+          statusMessage.className = "text-lg font-bold mb-4";
+        }
+
+        updateControlButtons();
+      }
+
+      // تحديث الواجهة بناءً على الفهرس الحالي
+      function updateVisualization() {
+        if (
+          currentStepIndex >= 0 &&
+          currentStepIndex < simulationHistory.length
+        ) {
+          const step = simulationHistory[currentStepIndex];
+
+          // 1. تحديث المصفوفة
+          renderArray(step.arrayState);
+
+          // 2. تحديث الجدول
+          const algorithm = document.getElementById("algorithmSelect").value;
+          renderSortTable(
+            simulationHistory
+              .map((s) => s.logEntry)
+              .filter((l) => l.i !== undefined),
+            algorithm
+          ); // فلترة الخطوات غير اللوغاريتمية
+
+          // 3. تحديث الرسالة
+          showMessage(step.message, step.isError);
+
+          // 4. تحديث حالة الأزرار
+          if (currentStepIndex === simulationHistory.length - 1) {
+            isSortFinished = true;
+            showMessage(step.message, false);
+          } else {
+            isSortFinished = false;
+          }
+        }
+
+        updateControlButtons();
+      }
+
+      // ===============================================
+      // محاكي ترتيب الفقاعة (Bubble Sort Simulator)
+      // ===============================================
+      function bubbleSortSimulator(arr) {
+        const n = arr.length;
+        let arraySnapshot = arr.slice();
+        let sortedIndices = new Set();
+
+        // الخطوة 0: الحالة الأولية
+        simulationHistory.push({
+          arrayState: {
+            array: arraySnapshot.slice(),
+            sortedIndices: new Set(),
+            algorithm: "bubble",
+          },
+          logEntry: { decision: "بدء الترتيب" },
+          message: `بدء خوارزمية ترتيب الفقاعة.`,
+          isError: false,
+        });
+
+        for (let i = 0; i < n - 1; i++) {
+          let swapped = false;
+          for (let j = 0; j < n - 1 - i; j++) {
+            // خطوة 1: المقارنة
+            simulationHistory.push({
+              arrayState: {
+                array: arraySnapshot.slice(),
+                highlightIndex: j,
+                highlightIndex2: j + 1,
+                sortedIndices: new Set(sortedIndices),
+                algorithm: "bubble",
+              },
+              logEntry: {
+                i: i,
+                j: j,
+                currentJValue: arraySnapshot[j],
+                nextJValue: arraySnapshot[j + 1],
+                decision: `مقارنة: هل ${arraySnapshot[j]} > ${
+                  arraySnapshot[j + 1]
+                }؟`,
+              },
+              message: `الدورة ${i + 1}, المقارنة ${
+                j + 1
+              }: مقارنة العنصر ${j} (${arraySnapshot[j]}) مع العنصر ${j + 1} (${
+                arraySnapshot[j + 1]
+              }).`,
+              isError: false,
+            });
+
+            if (arraySnapshot[j] > arraySnapshot[j + 1]) {
+              // خطوة 2: التبديل
+              [arraySnapshot[j], arraySnapshot[j + 1]] = [
+                arraySnapshot[j + 1],
+                arraySnapshot[j],
+              ];
+              swapped = true;
+
+              simulationHistory.push({
+                arrayState: {
+                  array: arraySnapshot.slice(),
+                  highlightIndex: j + 1,
+                  highlightIndex2: j,
+                  sortedIndices: new Set(sortedIndices),
+                  algorithm: "bubble",
+                },
+                logEntry: {
+                  i: i,
+                  j: j,
+                  currentJValue: arraySnapshot[j + 1],
+                  nextJValue: arraySnapshot[j],
+                  decision: `تبديل: ${
+                    arraySnapshot[j + 1]
+                  } $\\leftrightarrow$ ${arraySnapshot[j]}.`,
+                },
+                message: `تم التبديل. الترتيب الجديد: ${arraySnapshot.join(
+                  ", "
+                )}.`,
+                isError: false,
+              });
+            } else {
+              // خطوة 2: لا تبديل
+              simulationHistory.push({
+                arrayState: {
+                  array: arraySnapshot.slice(),
+                  highlightIndex: j,
+                  highlightIndex2: j + 1,
+                  sortedIndices: new Set(sortedIndices),
+                  algorithm: "bubble",
+                },
+                logEntry: {
+                  i: i,
+                  j: j,
+                  currentJValue: arraySnapshot[j],
+                  nextJValue: arraySnapshot[j + 1],
+                  decision: "لا تبديل. الانتقال للعنصر التالي.",
+                },
+                message: `لا تبديل. العنصران في مكانهما الصحيح.`,
+                isError: false,
+              });
+            }
+          }
+
+          // إضافة العنصر الأخير في الدورة إلى المجموعة المرتبة
+          sortedIndices.add(n - 1 - i);
+
+          simulationHistory.push({
+            arrayState: {
+              array: arraySnapshot.slice(),
+              sortedIndices: new Set(sortedIndices),
+              algorithm: "bubble",
+            },
+            logEntry: {
+              decision: `انتهت الدورة ${i + 1}. العنصر ${n - 1 - i} (${
+                arraySnapshot[n - 1 - i]
+              }) أصبح في مكانه الصحيح.`,
+            },
+            message: `انتهت الدورة ${i + 1}. العنصر ${n - 1 - i} أصبح مرتبًا.`,
+            isError: false,
+          });
+
+          if (!swapped) {
+            // إذا لم يحدث أي تبديل في الدورة، فإن المصفوفة مرتبة
+            for (let k = 0; k < n - 1 - i; k++) {
+              sortedIndices.add(k);
+            }
+            break;
+          }
+        }
+
+        // خطوة النهاية
+        simulationHistory.push({
+          arrayState: {
+            array: arraySnapshot.slice(),
+            sortedIndices: new Set(Array.from({ length: n }, (_, k) => k)),
+            algorithm: "bubble",
+          },
+          logEntry: { decision: `تم الترتيب بالكامل.` },
+          message: `تم الانتهاء من ترتيب المصفوفة. المصفوفة المرتبة: ${arraySnapshot.join(
+            ", "
+          )}`,
+          isError: false,
+        });
+      }
+
+      // ===============================================
+      // محاكي ترتيب الاختيار (Selection Sort Simulator)
+      // ===============================================
+      function selectionSortSimulator(arr) {
+        const n = arr.length;
+        let arraySnapshot = arr.slice();
+        let sortedIndices = new Set();
+
+        // الخطوة 0: الحالة الأولية
+        simulationHistory.push({
+          arrayState: {
+            array: arraySnapshot.slice(),
+            sortedIndices: new Set(),
+            algorithm: "selection",
+          },
+          logEntry: { decision: "بدء الترتيب" },
+          message: `بدء خوارزمية ترتيب الاختيار.`,
+          isError: false,
+        });
+
+        for (let i = 0; i < n - 1; i++) {
+          let min_idx = i;
+
+          // خطوة 1: تحديد العنصر الحالي (i)
+          simulationHistory.push({
+            arrayState: {
+              array: arraySnapshot.slice(),
+              highlightIndex: i,
+              minIndex: min_idx,
+              sortedIndices: new Set(sortedIndices),
+              algorithm: "selection",
+            },
+            logEntry: {
+              decision: `الدورة ${i + 1}: تحديد العنصر ${i} كأقل قيمة أولية (${
+                arraySnapshot[min_idx]
+              }).`,
+            },
+            message: `الدورة ${i + 1}: نبدأ البحث عن أصغر عنصر من الفهرس ${i}.`,
+            isError: false,
+          });
+
+          for (let j = i + 1; j < n; j++) {
+            // خطوة 2: المقارنة
+            let decisionText;
+            let newMin = false;
+
+            if (arraySnapshot[j] < arraySnapshot[min_idx]) {
+              min_idx = j;
+              decisionText = `تم إيجاد أصغر قيمة جديدة: ${arraySnapshot[min_idx]} عند الفهرس ${min_idx}.`;
+              newMin = true;
+            } else {
+              decisionText = `مقارنة: ${arraySnapshot[j]} $\\ngtr$ ${arraySnapshot[min_idx]}. الاحتفاظ بأقل قيمة سابقة.`;
+            }
+
+            simulationHistory.push({
+              arrayState: {
+                array: arraySnapshot.slice(),
+                highlightIndex: i,
+                highlightIndex2: j,
+                minIndex: min_idx,
+                sortedIndices: new Set(sortedIndices),
+                algorithm: "selection",
+              },
+              logEntry: {
+                i: i,
+                j: j,
+                minIdx: min_idx,
+                minVal: arraySnapshot[min_idx],
+                currentJVal: arraySnapshot[j],
+                decision: decisionText,
+              },
+              message: `مقارنة ${arraySnapshot[j]} في ${j} مع أقل قيمة (${arraySnapshot[min_idx]}) في ${min_idx}.`,
+              isError: false,
+            });
+          }
+
+          // خطوة 3: التبديل (بعد انتهاء البحث عن الأصغر)
+          if (min_idx !== i) {
+            [arraySnapshot[i], arraySnapshot[min_idx]] = [
+              arraySnapshot[min_idx],
+              arraySnapshot[i],
+            ];
+
+            simulationHistory.push({
+              arrayState: {
+                array: arraySnapshot.slice(),
+                highlightIndex: i,
+                highlightIndex2: min_idx,
+                minIndex: i,
+                sortedIndices: new Set(sortedIndices),
+                algorithm: "selection",
+              },
+              logEntry: {
+                decision: `تبديل: تم تبديل العنصر ${i} مع العنصر ${min_idx}.`,
+              },
+              message: `تم تبديل العنصر ${i} (${arraySnapshot[min_idx]}) مع أصغر قيمة تم العثور عليها ${min_idx} (${arraySnapshot[i]}).`,
+              isError: false,
+            });
+          } else {
+            simulationHistory.push({
+              arrayState: {
+                array: arraySnapshot.slice(),
+                highlightIndex: i,
+                minIndex: i,
+                sortedIndices: new Set(sortedIndices),
+                algorithm: "selection",
+              },
+              logEntry: { decision: `لا تبديل: العنصر ${i} كان هو أصغر قيمة.` },
+              message: `لا تبديل مطلوب. العنصر ${i} هو الأصغر في النطاق المتبقي.`,
+              isError: false,
+            });
+          }
+
+          // إضافة العنصر الحالي إلى المجموعة المرتبة
+          sortedIndices.add(i);
+
+          simulationHistory.push({
+            arrayState: {
+              array: arraySnapshot.slice(),
+              sortedIndices: new Set(sortedIndices),
+              algorithm: "selection",
+            },
+            logEntry: {
+              decision: `انتهت الدورة ${
+                i + 1
+              }. العنصر ${i} أصبح في مكانه الصحيح.`,
+            },
+            message: `انتهت الدورة ${i + 1}. العنصر ${i} أصبح مرتبًا.`,
+            isError: false,
+          });
+        }
+
+        // خطوة النهاية (إضافة آخر عنصر)
+        sortedIndices.add(n - 1);
+        simulationHistory.push({
+          arrayState: {
+            array: arraySnapshot.slice(),
+            sortedIndices: new Set(Array.from({ length: n }, (_, k) => k)),
+            algorithm: "selection",
+          },
+          logEntry: { decision: `تم الترتيب بالكامل.` },
+          message: `تم الانتهاء من ترتيب المصفوفة. المصفوفة المرتبة: ${arraySnapshot.join(
+            ", "
+          )}`,
+          isError: false,
+        });
+      }
+    </script>
+  </body>
+</html>

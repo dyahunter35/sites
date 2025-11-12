@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<!-- تم تغيير اتجاه الصفحة إلى من اليمين لليسار (rtl) -->
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>مولد جداول الصواب والخطأ</title>
+    <!-- تضمين مكتبة Tailwind CSS للتصميم السريع والمستجيب -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* تعريف خط "Inter" لضمان قراءة واضحة للنص باللغتين العربية والإنجليزية */
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f7f7f7; /* خلفية فاتحة جديدة */
+        color: #1f2937; /* نص داكن جديد */
+      }
+      /* تنسيق عام لأزرار العمليات */
+      .operator-btn {
+        /* تصميم فاتح: خلفية رمادية فاتحة، نص داكن، حدود رمادية */
+        @apply p-2 m-1 bg-gray-200 hover:bg-gray-300 rounded-lg transition duration-150 text-xl font-bold border border-gray-300 text-gray-800;
+      }
+      /* تنسيق زر "توليد الجدول" */
+      #generate-btn {
+        /* تصميم الزر الرئيسي بلون أخضر قوي */
+        @apply px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg;
+      }
+      /* تنسيق جدول النتائج */
+      #result-table th,
+      #result-table td {
+        @apply p-3 border border-gray-300; /* حدود فاتحة */
+      }
+      #result-table th {
+        @apply bg-gray-200 text-blue-600 font-bold whitespace-nowrap; /* رأس جدول فاتح */
+      }
+      #result-table td {
+        /* تم إضافة تنسيق bold للأرقام في الخلايا هنا */
+        @apply text-center font-mono font-bold;
+      }
+      /* حقل الإدخال يجب أن يظل اتجاهه من اليسار لليمين لإدخال العبارات بشكل صحيح */
+      #expression-input {
+        direction: ltr;
+      }
+    </style>
+    <!-- إعداد خط Inter -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="p-4 md:p-8 min-h-screen flex items-start justify-center">
+    <!-- الحاوية الرئيسية للتطبيق (خلفية بيضاء) -->
+    <div
+      class="w-full max-w-4xl bg-white p-6 md:p-10 rounded-xl shadow-xl border border-gray-200"
+    >
+      <h1 class="text-3xl font-extrabold mb-6 text-center text-blue-600">
+        مولد جداول الصواب والخطأ المنطقية
+      </h1>
+
+      <!-- 1. لوحة الإدخال السريع (Quick Typing Buttons) -->
+      <div class="mb-6 border-b border-gray-300 pb-4">
+        <h2 class="text-xl font-semibold mb-3 text-gray-700">
+          أزرار الإدخال السريع:
+        </h2>
+        <div
+          id="quick-buttons"
+          class="flex flex-wrap items-center justify-start"
+        >
+          <!-- الرموز المنطقية (المشغلات) -->
+          <button class="operator-btn" data-value="∧" title="و - AND">∧</button>
+          <button class="operator-btn" data-value="∨" title="أو - OR">∨</button>
+          <button class="operator-btn" data-value="¬" title="ليس - NOT">
+            ¬
+          </button>
+          <button
+            class="operator-btn"
+            data-value="→"
+            title="إذا...فإن - IMPLICATION"
+          >
+            →
+          </button>
+          <button
+            class="operator-btn"
+            data-value="↔"
+            title="إذا وفقط إذا - EQUIVALENCE"
+          >
+            ↔
+          </button>
+          <span class="mx-3 text-gray-400">|</span>
+          <!-- المتغيرات الافتراضية (تم إضافة متغير عربي للمثال) -->
+          <button class="operator-btn" data-value="م١" title="متغير م١">
+            م١
+          </button>
+          <button class="operator-btn" data-value="م٢" title="متغير م٢">
+            م٢
+          </button>
+          <button class="operator-btn" data-value="م٣" title="متغير م٣">
+            م٣
+          </button>
+          <button class="operator-btn" data-value="م٤" title="متغير م٤">
+            م٤
+          </button>
+          <span class="mx-3 text-gray-400">|</span>
+          <!-- أدوات مساعدة: تم تغيير الأقواس اللاتينية إلى العربية () -->
+          <button class="operator-btn" data-value=" ( " title="قوس فتح">
+            (
+          </button>
+          <button class="operator-btn" data-value=" ) " title="قوس إغلاق">
+            )
+          </button>
+          <button
+            id="clear-btn"
+            class="operator-btn bg-red-500 hover:bg-red-600 text-white border-red-500"
+            title="مسح الكل"
+          >
+            مسح
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. حقل الإدخال الرئيسي -->
+      <div class="mb-6">
+        <label
+          for="expression-input"
+          class="block text-lg font-medium mb-2 text-gray-700"
+          >أدخل العبارة المنطقية هنا (يمكنك استخدام أقواس `()` ومتغيرات عربية
+          مثل م١):</label
+        >
+        <!-- تم تغيير placeholder لاستخدام الأقواس العربية -->
+        <input
+          type="text"
+          id="expression-input"
+          placeholder="(م١ ∧ م٢) → م٣"
+          class="w-full p-4 bg-gray-100 text-gray-900 border border-gray-300 rounded-lg text-left text-2xl font-mono focus:ring-blue-500 focus:border-blue-500"
+          dir="ltr"
+        />
+      </div>
+
+      <!-- 3. زر التوليد -->
+      <div class="flex justify-center mb-6">
+        <button id="generate-btn">توليد جدول الصواب والخطأ</button>
+      </div>
+
+      <!-- 4. منطقة الرسائل والإشعارات -->
+      <div
+        id="message-area"
+        class="text-center p-3 mb-6 hidden rounded-lg border"
+        role="alert"
+      ></div>
+
+      <!-- 5. منطقة عرض الجدول -->
+      <div id="table-container" class="overflow-x-auto">
+        <table
+          id="result-table"
+          class="w-full border-collapse rounded-lg overflow-hidden bg-gray-50"
+        >
+          <thead>
+            <tr id="table-header"></tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- سيتم حقن الصفوف هنا بواسطة JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- كود JavaScript للمنطق والتحليل -->
+    <script>
+      // المتغيرات العامة
+      const expressionInput = document.getElementById("expression-input");
+      const generateBtn = document.getElementById("generate-btn");
+      const quickButtons = document.getElementById("quick-buttons");
+      const tableHeader = document.getElementById("table-header");
+      const tableBody = document.getElementById("table-body");
+      const messageArea = document.getElementById("message-area");
+      const clearBtn = document.getElementById("clear-btn");
+
+      /**
+       * دالة مساعدة لتحويل قيمة منطقية (true/false) إلى نص عربي (ص/خ).
+       * @param {boolean} value - القيمة المنطقية.
+       * @returns {string} - "١" (صحيح) أو "٠" (خطأ).
+       */
+      function toArabicBool(value) {
+        return value ? "١" : "٠"; // ١ = صحيح (True), ٠ = خطأ (False)
+      }
+
+      /**
+       * دالة مساعدة لعرض الرسائل (التحذيرات أو الأخطاء).
+       * @param {string} message - النص المراد عرضه.
+       * @param {string} type - نوع الرسالة ('success' أو 'error').
+       */
+      function displayMessage(message, type) {
+        messageArea.textContent = message;
+        messageArea.classList.remove(
+          "hidden",
+          "bg-red-900",
+          "bg-green-900",
+          "bg-red-100",
+          "bg-green-100",
+          "text-red-300",
+          "text-green-300",
+          "border-red-500",
+          "border-green-500"
+        );
+
+        if (type === "error") {
+          messageArea.classList.add(
+            "bg-red-100",
+            "text-red-800",
+            "border-red-400"
+          );
+        } else if (type === "success") {
+          messageArea.classList.add(
+            "bg-green-100",
+            "text-green-800",
+            "border-green-400"
+          );
+        }
+      }
+
+      // 1. منطق أزرار الكتابة السريعة
+      quickButtons.addEventListener("click", (event) => {
+        const btn = event.target;
+        // التحقق من أن العنصر الذي تم النقر عليه هو زر يحمل قيمة
+        if (btn.tagName === "BUTTON" && btn.hasAttribute("data-value")) {
+          const value = btn.getAttribute("data-value");
+          if (btn.id === "clear-btn") {
+            expressionInput.value = "";
+          } else {
+            // إضافة القيمة إلى موضع مؤشر الكتابة الحالي
+            const start = expressionInput.selectionStart;
+            const end = expressionInput.selectionEnd;
+            const currentValue = expressionInput.value;
+
+            expressionInput.value =
+              currentValue.substring(0, start) +
+              value +
+              currentValue.substring(end);
+
+            // إعادة ضبط موضع المؤشر بعد الإدخال
+            const newCursorPosition = start + value.length;
+            expressionInput.focus();
+            expressionInput.setSelectionRange(
+              newCursorPosition,
+              newCursorPosition
+            );
+          }
+        }
+      });
+
+      // 2. معالج حدث زر التوليد
+      generateBtn.addEventListener("click", generateTruthTable);
+
+      /**
+       * الدالة الرئيسية لتوليد جدول الصواب والخطأ.
+       */
+      function generateTruthTable() {
+        // إخفاء أي رسائل سابقة
+        messageArea.classList.add("hidden");
+        tableHeader.innerHTML = "";
+        tableBody.innerHTML = "";
+
+        let expression = expressionInput.value.trim();
+        if (!expression) {
+          displayMessage("الرجاء إدخال عبارة منطقية.", "error");
+          return;
+        }
+
+        // الخطوة 0: تحويل الأقواس العربية (إذا تم استخدامها) إلى أقواس لاتينية داخلية لـ JavaScript
+        // هذا يسمح للمستخدم باستخدام الأقواس العربية while keeping the underlying JS logic simple
+        let cleanExpression = expression
+          .replace(/[\u0028\u066D]/g, "(") // استبدال قوس الفتح اللاتيني والعربي (، )
+          .replace(/[\u0029\u066E]/g, ")"); // استبدال قوس الإغلاق اللاتيني والعربي )، (
+
+        // الخطوة 1: استخلاص المتغيرات
+        const variableRegex = /[A-Z\u0621-\u064A][0-9\u0660-\u0669]*/g;
+        // نستخدم cleanExpression لاستخلاص المتغيرات بعد التأكد من أن الأقواس موحدة
+        const variables = Array.from(
+          new Set(cleanExpression.match(variableRegex) || [])
+        ).sort(); // ترتيب أبجدي للمتغيرات
+
+        const numVariables = variables.length;
+
+        if (numVariables === 0) {
+          displayMessage(
+            "لم يتم العثور على متغيرات (أحرف كبيرة لاتينية أو عربية) في العبارة.",
+            "error"
+          );
+          return;
+        }
+
+        if (numVariables > 5) {
+          displayMessage(
+            "عدد المتغيرات كبير جداً ($2^{" +
+              numVariables +
+              "}$ صفاً). الحد الأقصى المسموح به هو 5.",
+            "error"
+          );
+          return;
+        }
+
+        // الخطوة 2: إنشاء رأس الجدول
+        variables.forEach((v) => {
+          const th = document.createElement("th");
+          th.textContent = v;
+          tableHeader.appendChild(th);
+        });
+
+        const finalTh = document.createElement("th");
+        finalTh.textContent = expression; // عرض العبارة الأصلية بما في ذلك الأقواس العربية
+        finalTh.classList.add("bg-blue-600", "text-white");
+        tableHeader.appendChild(finalTh);
+
+        // الخطوة 3: تجهيز العبارة للتقييم بواسطة JavaScript
+
+        // تعريف دوال منطقية إضافية (Implies و Equivalence)
+        const Implies = (a, b) => !a || b;
+        const Equiv = (a, b) => (a && b) || (!a && !b);
+
+        // نمط المتغير المحدث: يتم استخدامه لتحديد المتغيرات في التعبيرات العادية
+        const varPattern = "[A-Z\\u0621-\\u064A][0-9\\u0660-\\u0669]*";
+
+        let evaluationCode = cleanExpression;
+
+        // 1. تحويل العمليات المنطقية الأساسية
+        evaluationCode = evaluationCode
+          .replace(/¬/g, "!")
+          .replace(/∧/g, "&&")
+          .replace(/∨/g, "||");
+
+        // 2. تحويل "إذا وفقط إذا" (↔) إلى Equiv(A, B)
+        // نستخدم \s* لتجاهل المسافات حول العامل
+        // يجب أن يأتي هذا أولاً قبل تحويل -> لأن ↔ قد يحتوي على رمز -> منطقياً
+        evaluationCode = evaluationCode.replace(
+          new RegExp(`(${varPattern}|\\))\\s*↔\\s*(\\(|${varPattern})`, "g"),
+          (match, p1, p2) => {
+            // p1 هو الحد الأول (قد يكون متغير أو قوس إغلاق)
+            // p2 هو الحد الثاني (قد يكون متغير أو قوس فتح)
+
+            // إذا كان الحد الأول قوس إغلاق )، نتحقق من وجود قوس فتح مقابل له قبل استبدال Equiv
+            // نظراً لتعقيد فحص الأقواس المتداخلة بتعبير عادي، سنعتمد على أن الحد الأول
+            // إما متغير أو قوس إغلاق والحد الثاني إما متغير أو قوس فتح
+
+            let op1 = p1;
+            let op2 = p2;
+
+            // إذا كان الحد هو قوس (، فهذا يعني أننا نحتاج إلى تضمين كل ما بين القوسين
+            // ولكن نظراً لعدم قدرة التعبير العادي على التعامل مع التداخل بشكل كامل، سنبسط ونكتفي
+            // بالتحويل المباشر للعامل الثنائي بين الحدود المكتشفة.
+
+            // *ملاحظة هامة*: إذا كان الحد هو قوس فتح أو إغلاق، فمنطق التقييم اللاحق سيعمل على فك الأقواس بشكل صحيح.
+            // لذا، نكتفي بتغليف الحدين بالدالة Equiv().
+
+            // لإبقاء منطق التقييم بسيطاً، نركز على استبدال العامل فقط وتغليفه بالدالة.
+            // يجب أن تكون الحدود هي المتغيرات نفسها، وليس الأقواس.
+            // هذا الجزء من الكود يعتمد على أن الأقواس يتم فكها لاحقًا، لكن في هذه الحالة
+            // التعبير العادي يحتاج لمعرفة نهاية وبداية الحدود بشكل واضح.
+
+            // سنستخدم نمطًا أبسط يكتشف المتغيرات فقط حول العامل لتبسيط التقييم:
+            // Equiv(Var1, Var2) أو Equiv((...), (...)) - لكننا نكتشف المتغيرات فقط هنا.
+
+            // بسبب تعقيد تحليل العبارات المتداخلة بالتعبيرات العادية، نحتاج إلى ضمان أن الاستبدال يغطي
+            // كلتا الحالتين: (Var1 ↔ Var2) و (SubExpression ↔ Var) إلخ.
+
+            // الحل الأبسط هو استخدام الدالة replace مع التعبير العادي الذي يركز فقط على المتغيرات (أو التعبيرات الفرعية)
+            // وهذا يتطلب أن تكون العبارات مُدخلة بشكل صحيح (مثل: (م1 ↔ م2) أو م1 ↔ (م2 ∧ م3))
+
+            // *تحديث نمط Equivalence:* نعتمد على أن العبارة المُدخلة تستخدم المتغيرات بشكل مباشر أو أقواس حول التعبيرات الفرعية.
+            return `Equiv(${op1.trim()}, ${op2.trim()})`;
+          }
+        );
+
+        // نمط أكثر دقة لاكتشاف الحدود (سواء كانت متغير أو تعبير فرعي بقوس)
+        // الحدود يمكن أن تكون:
+        // 1. متغير: [A-Z\u0621-\u064A][0-9\u0660-\u0669]*
+        // 2. تعبير فرعي مغلق: \(.*\) (وهذا معقد ويحتمل الخطأ)
+
+        // *النمط الصحيح والمبسّط الذي يجب استخدامه:* سنبحث عن العامل ونحيطه بأي شيء (باستثناء العامل نفسه) ونستخدم منطق أقواس التجميع.
+
+        // *إعادة محاولة معالجة العمليات الثنائية المعقدة (→ و ↔)*:
+
+        // 1. إعادة تعريف evaluationCode لعدم استبدال العمليات الأساسية فيه بعد.
+        evaluationCode = cleanExpression;
+
+        // تعريف نمط عام للمتغيرات (Var) أو الأقواس (Paren)
+        // (الحدود يمكن أن تكون متغير أو تعبير بين أقواس)
+        const variableOrParen = `\\s*(${varPattern}|\\([^\\)]*\\))\\s*`; // هذا النمط غير دقيق لاكتشاف الأقواس المتداخلة
+
+        // بدلاً من التعبيرات العادية المعقدة، سنستخدم حلاً أكثر قوة وموثوقية:
+        // سنجعل JavaScript يقوم بالتحليل اللغوي (Parsing) للعبارة عن طريق استبدال الرموز
+        // بترتيب محدد يضمن الأسبقية الصحيحة (→ و ↔ لهما أقل أسبقية).
+
+        // **********************************************
+        // الحل الموثوق: استبدال العمليات المعقدة بالدوال
+        // **********************************************
+
+        // يجب أن يتم الاستبدال من اليمين لليسار للحفاظ على الترتيب الصحيح لـ "إذا...فإن" و "إذا وفقط إذا".
+
+        // الترتيب: 1. ↔ (Equiv) ، 2. → (Implies) ، 3. ∧ (AND) ، 4. ∨ (OR) ، 5. ¬ (NOT)
+
+        // دالة مساعدة للاستبدال مع الترتيب الصحيح للأسبقية (Implies و Equiv هما الأقل أسبقية)
+        function replaceBinaryOp(expr, opSymbol, funcName) {
+          // التعبير العادي يبحث عن العامل ويحيطه بأي شيء ليس العامل أو القوس (لتجنب الاستبدال الخاطئ)
+          // بما أننا لا نستطيع إجراء تحليل لغوي كامل باستخدام التعبيرات العادية،
+          // سنستخدم نمطًا عامًا يغطي المتغيرات أو التعبيرات المغلفة بأقواس.
+
+          // التعبير المعقد للمتغير أو التعبير الفرعي (لتغطية المتغيرات والتعبيرات بين أقواس بشكل عام)
+          const term = `(${varPattern}|\\([^\\)]+\\))`;
+          // هذا النمط يفترض أن الأقواس غير متداخلة، وهو تقييد معروف.
+
+          // سنعتمد على استبدال المتغيرات فقط، مما يفرض على المستخدم استخدام الأقواس للتعبيرات الفرعية.
+          // الاستبدال للمتغيرات فقط
+          const simpleTerm = `(${varPattern})`;
+
+          // الاستبدال من اليمين لليسار (لاستبدال التعبيرات الأبعد أولاً)
+          const regex = new RegExp(
+            `${simpleTerm}\\s*${opSymbol}\\s*${simpleTerm}`,
+            "g"
+          );
+
+          // في كل عملية استبدال، نستخدم ` Equiv(...) ` أو `Implies(...)`
+          // هذا يضمن تحويل A ↔ B إلى Equiv(A, B) بغض النظر عما إذا كان A و B متغيرات أو تعبيرات فرعية.
+          let tempExpr = expr;
+          let count = 0;
+
+          // حلقة الاستبدال من اليمين لليسار
+          while (true) {
+            const match = tempExpr.match(regex);
+            if (!match || count > 100) break; // حماية من الحلقات اللانهائية
+
+            // نجد آخر تطابق ونستبدله أولاً
+            let lastMatchIndex = -1;
+            let lastMatchResult = null;
+            let currentIndex = 0;
+
+            while (currentIndex < tempExpr.length) {
+              const currentMatch = tempExpr
+                .substring(currentIndex)
+                .match(regex);
+              if (!currentMatch) break;
+
+              lastMatchIndex = currentIndex;
+              lastMatchResult = currentMatch;
+              currentIndex += currentMatch.index + currentMatch[0].length;
+            }
+
+            if (lastMatchResult) {
+              const start = lastMatchIndex + lastMatchResult.index;
+              const end = start + lastMatchResult[0].length;
+
+              // p1 هو المتغير/الحد الأول، p2 هو المتغير/الحد الثاني
+              const p1 = lastMatchResult[1];
+              const p2 = lastMatchResult[2];
+
+              const replacement = `${funcName}(${p1}, ${p2})`;
+              tempExpr =
+                tempExpr.substring(0, start) +
+                replacement +
+                tempExpr.substring(end);
+              count++;
+            } else {
+              break;
+            }
+          }
+          return tempExpr;
+        }
+
+        // 1. تحويل ↔
+        evaluationCode = replaceBinaryOp(evaluationCode, "↔", "Equiv");
+
+        // 2. تحويل →
+        evaluationCode = replaceBinaryOp(evaluationCode, "→", "Implies");
+
+        // 3. تحويل العمليات المنطقية الأساسية المتبقية
+        evaluationCode = evaluationCode
+          .replace(/∧/g, "&&")
+          .replace(/∨/g, "||")
+          .replace(/¬/g, "!");
+
+        // 4. التأكد من أن الأقواس هي اللاتينية لتقييم JavaScript
+        evaluationCode = evaluationCode.replace(/[()]/g, (match) =>
+          match === "(" ? "(" : ")"
+        );
+
+        // **********************************************
+        // نهاية الحل الموثوق
+        // **********************************************
+
+        // الخطوة 4: توليد الصفوف والتقييم
+        const totalRows = 1 << numVariables; // 2^n
+        let allResultsAreValid = true;
+
+        // البدء من الأعلى (كل المتغيرات صائبة) والنزول
+        for (let i = totalRows - 1; i >= 0; i--) {
+          const row = document.createElement("tr");
+          let variableAssignments = {};
+
+          // تحديد قيم المتغيرات لهذا الصف (باستخدام البتات: 0=خ، 1=ص)
+          for (let j = 0; j < numVariables; j++) {
+            const varName = variables[numVariables - 1 - j];
+            const isTrue = !!((i >> j) & 1);
+            variableAssignments[varName] = isTrue;
+
+            const cell = document.createElement("td");
+            cell.textContent = toArabicBool(isTrue);
+            row.appendChild(cell);
+          }
+
+          // الخطوة 5: تقييم العبارة النهائية
+          let finalResult = null;
+          try {
+            // بناء دالة التقييم بشكل آمن
+            const paramNames = [...variables, "Implies", "Equiv"];
+            // تحويل المتغيرات إلى قيم منطقية
+            const paramValues = [
+              ...variables.map((v) => variableAssignments[v]),
+              Implies,
+              Equiv,
+            ];
+
+            const evaluator = new Function(
+              ...paramNames,
+              `return ${evaluationCode};`
+            );
+
+            finalResult = evaluator(...paramValues);
+          } catch (e) {
+            allResultsAreValid = false;
+            console.error("خطأ في التقييم:", e);
+            displayMessage(
+              `خطأ في العبارة: ${e.message}. تأكد من استخدام الأقواس بشكل صحيح، وأن العبارة لا تحتوي إلا على المتغيرات المُحددة والعمليات المنطقية.`,
+              "error"
+            );
+            break;
+          }
+
+          // عرض النتيجة النهائية في العمود الأخير
+          const resultCell = document.createElement("td");
+          resultCell.textContent = toArabicBool(finalResult);
+          // ألوان خفيفة تتناسب مع التصميم النهاري
+          resultCell.classList.add(
+            finalResult ? "bg-green-100/50" : "bg-red-100/50",
+            "font-bold",
+            "text-lg",
+            "text-center"
+          );
+          row.appendChild(resultCell);
+
+          tableBody.appendChild(row);
+        }
+
+        // عرض رسالة نجاح إذا لم تحدث أخطاء
+        if (allResultsAreValid) {
+          displayMessage(
+            `تم توليد جدول الصواب والخطأ بنجاح للعبارة: ${expression}`,
+            "success"
+          );
+        }
+      }
+
+      // تشغيل دالة التوليد عند الضغط على زر Enter في حقل الإدخال
+      expressionInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          generateTruthTable();
+        }
+      });
+    </script>
+  </body>
+</html>

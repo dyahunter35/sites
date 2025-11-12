@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محاكاة بصرية لخوارزميات البحث</title>
+    <!-- تحميل Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap");
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: #f3f4f6;
+      }
+      /* تصميم الحاوية لتشمل العناصر والمؤشرات */
+      .array-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        margin-top: 20px;
+        min-height: 120px;
+        flex-wrap: wrap;
+      }
+      .element-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 4px;
+      }
+      .array-element {
+        min-width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .index-label {
+        margin-top: 4px;
+        font-size: 0.75rem;
+        color: #4b5563;
+      }
+      .marker-label {
+        font-size: 0.65rem;
+        font-weight: bold;
+        padding: 2px 4px;
+        border-radius: 4px;
+        margin-top: 2px;
+        color: white;
+        opacity: 0.9;
+      }
+
+      /* الألوان المستخدمة */
+      .default-bg {
+        background-color: #e5e7eb;
+        color: #1f2937;
+      }
+      .comparing-bg {
+        background-color: #fcd34d;
+        color: #92400e;
+      } /* Amber-300 */
+      .found-bg {
+        background-color: #10b981;
+        color: white;
+      } /* Green-500 */
+      .excluded-bg {
+        background-color: #fecaca;
+        color: #ef4444;
+        opacity: 0.6;
+      } /* Red-200 */
+      .low-high-bg {
+        background-color: #fb923c;
+      } /* Orange-400 */
+      .mid-bg {
+        background-color: #3b82f6;
+      } /* Blue-500 */
+
+      /* تصميم الجدول للخطوات */
+      .steps-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .steps-table th,
+      .steps-table td {
+        border: 1px solid #d1d5db;
+        padding: 8px;
+        text-align: center;
+        font-size: 0.875rem;
+      }
+      .steps-table th {
+        background-color: #4f46e5;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+      }
+      .steps-table tr:nth-child(even) {
+        background-color: #f3f4f6;
+      }
+      .steps-log-container {
+        max-height: 250px; /* تحديد ارتفاع أقصى لسجل الخطوات */
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 md:p-10">
+      <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">
+        محاكاة بصرية لخوارزميات البحث التفاعلية
+      </h1>
+
+      <!-- قسم الإعدادات والتحكم -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
+          إعدادات البحث
+        </h2>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+          <div class="flex-1">
+            <label
+              for="algorithmSelect"
+              class="block text-sm font-medium text-gray-700"
+              >اختر خوارزمية البحث:</label
+            >
+            <select
+              id="algorithmSelect"
+              class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+              onchange="resetSearch(true)"
+            >
+              <option value="sequential">
+                البحث المتتالي (Sequential Search)
+              </option>
+              <option value="binary">
+                البحث الثنائي (Binary Search) - يتطلب مصفوفة مرتبة
+              </option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label
+              for="targetInput"
+              class="block text-sm font-medium text-gray-700"
+              >القيمة المستهدفة:</label
+            >
+            <input
+              type="number"
+              id="targetInput"
+              value="30"
+              class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-left"
+              dir="ltr"
+              onchange="resetSearch(true)"
+            />
+          </div>
+        </div>
+
+        <!-- أزرار التحكم في التنقل -->
+        <div class="flex flex-col sm:flex-row gap-2 mt-4">
+          <button
+            onclick="startSearch()"
+            id="startButton"
+            class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 shadow-md"
+          >
+            ابدأ / ابحث عن الخطوة الأولى
+          </button>
+          <button
+            onclick="nextStep()"
+            id="nextButton"
+            class="flex-1 bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition duration-150 shadow-md disabled:opacity-50"
+            disabled
+          >
+            الخطوة التالية &raquo;
+          </button>
+          <button
+            onclick="previousStep()"
+            id="prevButton"
+            class="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold hover:bg-gray-600 transition duration-150 shadow-md disabled:opacity-50"
+            disabled
+          >
+            &laquo; الخطوة السابقة
+          </button>
+          <button
+            onclick="resetSearch(true)"
+            class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 transition duration-150 shadow-md"
+          >
+            إعادة الضبط
+          </button>
+        </div>
+      </div>
+
+      <!-- عرض المصفوفة -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">المصفوفة:</h2>
+        <div id="arrayContainer" class="array-container">
+          <!-- العناصر ستوضع هنا بواسطة JavaScript -->
+        </div>
+      </div>
+
+      <!-- منطقة الخطوات والنتائج -->
+      <div
+        class="p-4 bg-white rounded-lg border border-indigo-200 shadow-inner"
+      >
+        <h2 class="text-xl font-semibold text-indigo-700 mb-2">سجل الخطوات:</h2>
+        <p id="statusMessage" class="text-lg font-bold mb-4">
+          اضغط على "ابدأ / ابحث عن الخطوة الأولى" للبدء.
+        </p>
+        <div
+          id="stepsLog"
+          class="steps-log-container bg-gray-100 p-3 rounded-lg border border-gray-300"
+        >
+          <!-- سجل الخطوات يظهر هنا -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // المصفوفة الافتراضية
+      const array = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+      let arrayContainer, stepsLog, statusMessage;
+      let targetValue;
+      let currentStepIndex = -1; // الفهرس الحالي لخطوات المحاكاة
+      let simulationHistory = []; // تخزين حالة المحاكاة في كل خطوة
+      let isSearchFinished = false;
+
+      // تهيئة الواجهة عند تحميل الصفحة
+      window.onload = function () {
+        arrayContainer = document.getElementById("arrayContainer");
+        stepsLog = document.getElementById("stepsLog");
+        statusMessage = document.getElementById("statusMessage");
+        resetSearch(false); // تهيئة أولية
+      };
+
+      // ===============================================
+      // وظائف دعم الواجهة والمؤشرات
+      // ===============================================
+
+      // دالة لعرض المصفوفة في الواجهة
+      function renderArray({
+        highlightIndex = -1,
+        lowIndex = -1,
+        highIndex = -1,
+        midIndex = -1,
+        excludedIndices = new Set(),
+        algorithm = "binary",
+      } = {}) {
+        arrayContainer.innerHTML = "";
+
+        array.forEach((value, index) => {
+          const wrapper = document.createElement("div");
+          wrapper.classList.add("element-wrapper");
+
+          const element = document.createElement("div");
+          element.textContent = value;
+          element.classList.add("array-element", "p-2");
+
+          let bgColorClass = "default-bg";
+          let elementIsActive = true;
+
+          // تحديد الخلفية الأساسية
+          if (excludedIndices.has(index)) {
+            bgColorClass = "excluded-bg";
+            elementIsActive = false;
+          } else if (midIndex === index) {
+            bgColorClass = "mid-bg";
+          } else if (lowIndex === index || highIndex === index) {
+            if (index !== midIndex) {
+              bgColorClass = "low-high-bg";
+            }
+          } else if (highlightIndex === index) {
+            bgColorClass = "comparing-bg";
+          }
+
+          // إضافة الفئة
+          element.classList.add(
+            bgColorClass,
+            elementIsActive ? "text-white" : "text-gray-700"
+          );
+
+          // إضافة مؤشر الفهرس
+          const indexLabel = document.createElement("div");
+          indexLabel.textContent = `[${index}]`;
+          indexLabel.classList.add("index-label");
+
+          wrapper.appendChild(element);
+          wrapper.appendChild(indexLabel);
+
+          // إضافة المؤشرات (Low/High/Mid/Current)
+          const markersDiv = document.createElement("div");
+          markersDiv.classList.add("flex", "flex-col", "items-center", "mt-1");
+
+          if (algorithm === "binary") {
+            if (index === lowIndex) {
+              const lowMarker = document.createElement("span");
+              lowMarker.textContent = "Low";
+              lowMarker.classList.add("marker-label", "bg-red-500");
+              markersDiv.appendChild(lowMarker);
+            }
+            if (index === highIndex) {
+              const highMarker = document.createElement("span");
+              highMarker.textContent = "High";
+              highMarker.classList.add("marker-label", "bg-blue-500");
+              markersDiv.appendChild(highMarker);
+            }
+            if (index === midIndex) {
+              const midMarker = document.createElement("span");
+              midMarker.textContent = "Mid";
+              midMarker.classList.add("marker-label", "bg-indigo-700");
+              markersDiv.appendChild(midMarker);
+            }
+          } else if (algorithm === "sequential" && index === highlightIndex) {
+            const currentMarker = document.createElement("span");
+            currentMarker.textContent = "Current";
+            currentMarker.classList.add("marker-label", "bg-amber-700");
+            markersDiv.appendChild(currentMarker);
+          }
+
+          wrapper.appendChild(markersDiv);
+          arrayContainer.appendChild(wrapper);
+        });
+      }
+
+      // دالة لعرض رسالة خطأ مؤقتة (لتحل محل 'alert')
+      function showMessage(message, isError = false) {
+        const statusDiv = document.getElementById("statusMessage");
+        statusDiv.textContent = message;
+        statusDiv.className =
+          "text-lg font-bold mb-4 " +
+          (isError ? "text-red-600" : "text-green-600");
+      }
+
+      // تحديث حالة الأزرار
+      function updateControlButtons() {
+        document.getElementById("nextButton").disabled =
+          isSearchFinished || currentStepIndex === simulationHistory.length - 1;
+        document.getElementById("prevButton").disabled = currentStepIndex <= 0;
+        document.getElementById("startButton").disabled = isSearchFinished;
+
+        if (currentStepIndex === -1 && !isSearchFinished) {
+          document.getElementById("startButton").textContent =
+            "ابدأ / ابحث عن الخطوة الأولى";
+        } else if (isSearchFinished) {
+          document.getElementById("startButton").textContent = "انتهى البحث";
+          document.getElementById("nextButton").disabled = true;
+        } else {
+          document.getElementById("startButton").textContent = "تم البدء";
+        }
+      }
+
+      // عرض خطوات البحث الثنائي كجدول
+      function renderBinaryTable(steps) {
+        let tableHTML = `
+                <table class="steps-table rounded-lg shadow-lg overflow-hidden">
+                    <thead>
+                        <tr>
+                            <th>الخطوة</th>
+                            <th>Low (فهرس)</th>
+                            <th>High (فهرس)</th>
+                            <th>Mid (فهرس)</th>
+                            <th>قيمة Mid</th>
+                            <th>القرار</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+        // نعرض الخطوات بترتيب تنازلي (الأحدث أولاً)
+        for (let i = steps.length - 1; i >= 0; i--) {
+          const step = steps[i];
+          const decisionClass = step.decision.includes("نجاح")
+            ? "text-green-700 font-bold"
+            : step.decision.includes("فشل")
+            ? "text-red-700 font-bold"
+            : "text-gray-700";
+          const rowClass = i === currentStepIndex ? "bg-yellow-200" : ""; // تمييز الصف الحالي
+
+          tableHTML += `
+                    <tr class="${rowClass}">
+                        <td>${i + 1}</td>
+                        <td class="font-mono">${step.low}</td>
+                        <td class="font-mono">${step.high}</td>
+                        <td class="font-mono">${step.mid}</td>
+                        <td class="font-mono">${step.midValue}</td>
+                        <td class="${decisionClass}">${step.decision}</td>
+                    </tr>
+                `;
+        }
+
+        tableHTML += "</tbody></table>";
+        stepsLog.innerHTML = tableHTML;
+      }
+
+      // عرض خطوات البحث المتتالي كجدول
+      function renderSequentialTable(steps) {
+        let tableHTML = `
+                <table class="steps-table rounded-lg shadow-lg overflow-hidden">
+                    <thead>
+                        <tr>
+                            <th>الخطوة</th>
+                            <th>الفهرس الحالي</th>
+                            <th>قيمة العنصر</th>
+                            <th>القيمة المستهدفة</th>
+                            <th>القرار</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+        // نعرض الخطوات بترتيب تنازلي (الأحدث أولاً)
+        for (let i = steps.length - 1; i >= 0; i--) {
+          const step = steps[i];
+          const decisionClass = step.decision.includes("نجاح")
+            ? "text-green-700 font-bold"
+            : step.decision.includes("فشل")
+            ? "text-red-700 font-bold"
+            : "text-gray-700";
+          const rowClass = i === currentStepIndex ? "bg-yellow-200" : ""; // تمييز الصف الحالي
+
+          tableHTML += `
+                    <tr class="${rowClass}">
+                        <td>${i + 1}</td>
+                        <td class="font-mono">${step.currentIndex}</td>
+                        <td class="font-mono">${step.currentValue}</td>
+                        <td class="font-mono">${step.target}</td>
+                        <td class="${decisionClass}">${step.decision}</td>
+                    </tr>
+                `;
+        }
+
+        tableHTML += "</tbody></table>";
+        stepsLog.innerHTML = tableHTML;
+      }
+
+      // ===============================================
+      // وظائف التنقل (Start, Next, Previous, Reset)
+      // ===============================================
+
+      // دالة بدء البحث - تحسب كل الخطوات وتخزنها
+      function startSearch() {
+        const algorithm = document.getElementById("algorithmSelect").value;
+        targetValue = parseInt(document.getElementById("targetInput").value);
+
+        if (isNaN(targetValue)) {
+          showMessage("يرجى إدخال قيمة مستهدفة رقمية صحيحة.", true);
+          return;
+        }
+
+        if (isSearchFinished) {
+          resetSearch(true);
+          return;
+        }
+
+        if (simulationHistory.length > 0) {
+          // إذا كان البحث قيد التقدم ولم ينتهِ، ننتقل للخطوة التالية
+          nextStep();
+          return;
+        }
+
+        // تهيئة البحث
+        showMessage(
+          `بدء المحاكاة التفاعلية لخوارزمية ${
+            algorithm === "binary" ? "البحث الثنائي" : "البحث المتتالي"
+          }...`
+        );
+        isSearchFinished = false;
+        simulationHistory = [];
+        currentStepIndex = -1;
+
+        if (algorithm === "sequential") {
+          sequentialSearchSimulator(targetValue);
+        } else if (algorithm === "binary") {
+          const isSorted = array.every(
+            (val, i, arr) => i === 0 || val >= arr[i - 1]
+          );
+          if (!isSorted) {
+            showMessage(
+              "لإجراء البحث الثنائي، يجب أن تكون المصفوفة مرتبة أولاً. المصفوفة الحالية مرتبة.",
+              true
+            );
+            return;
+          }
+          binarySearchSimulator(targetValue);
+        }
+
+        // بعد حساب كل الخطوات، ننتقل للخطوة الأولى
+        nextStep();
+      }
+
+      // الانتقال للخطوة التالية
+      function nextStep() {
+        if (currentStepIndex < simulationHistory.length - 1) {
+          currentStepIndex++;
+          updateVisualization();
+        }
+      }
+
+      // الانتقال للخطوة السابقة
+      function previousStep() {
+        if (currentStepIndex > 0) {
+          currentStepIndex--;
+          updateVisualization();
+        }
+      }
+
+      // إعادة ضبط المحاكاة
+      function resetSearch(shouldClearMessage = true) {
+        currentStepIndex = -1;
+        simulationHistory = [];
+        isSearchFinished = false;
+        stepsLog.innerHTML = "";
+
+        // عرض الحالة الأولية (بدون أي تلوين)
+        renderArray({
+          highlightIndex: -1,
+          excludedIndices: new Set(),
+          algorithm: document.getElementById("algorithmSelect").value,
+        });
+
+        if (shouldClearMessage) {
+          statusMessage.textContent =
+            'اضغط على "ابدأ / ابحث عن الخطوة الأولى" للبدء.';
+          statusMessage.className = "text-lg font-bold mb-4";
+        }
+
+        updateControlButtons();
+      }
+
+      // تحديث الواجهة بناءً على الفهرس الحالي
+      function updateVisualization() {
+        if (
+          currentStepIndex >= 0 &&
+          currentStepIndex < simulationHistory.length
+        ) {
+          const step = simulationHistory[currentStepIndex];
+
+          // 1. تحديث المصفوفة
+          renderArray(step.arrayState);
+
+          // 2. تحديث الجدول
+          const algorithm = document.getElementById("algorithmSelect").value;
+          if (algorithm === "binary") {
+            renderBinaryTable(simulationHistory.map((s) => s.logEntry));
+          } else {
+            renderSequentialTable(simulationHistory.map((s) => s.logEntry));
+          }
+
+          // 3. تحديث الرسالة
+          showMessage(step.message, step.isError);
+
+          // 4. تحديث حالة الأزرار
+          if (currentStepIndex === simulationHistory.length - 1) {
+            isSearchFinished = true;
+          } else {
+            isSearchFinished = false;
+          }
+        } else if (currentStepIndex === simulationHistory.length) {
+          // حالة الانتهاء (أعلى من آخر خطوة)
+          isSearchFinished = true;
+        }
+
+        updateControlButtons();
+      }
+
+      // ===============================================
+      // محاكي البحث المتتالي (Sequential Search Simulator)
+      // ===============================================
+      function sequentialSearchSimulator(target) {
+        let foundIndex = -1;
+
+        // الخطوة 0: الحالة الأولية
+        simulationHistory.push({
+          arrayState: { highlightIndex: -1, algorithm: "sequential" },
+          logEntry: {
+            currentIndex: "N/A",
+            currentValue: "N/A",
+            target: target,
+            decision: "بدء البحث",
+          },
+          message: `بدء البحث المتتالي عن ${target}.`,
+          isError: false,
+        });
+
+        for (let i = 0; i < array.length; i++) {
+          const currentValue = array[i];
+          let decisionText;
+
+          if (currentValue === target) {
+            decisionText = `نجاح: ${currentValue} = ${target}. تم العثور على القيمة عند الفهرس ${i}.`;
+            foundIndex = i;
+          } else {
+            decisionText = `مقارنة: ${currentValue} $\\neq$ ${target}. الانتقال للعنصر التالي.`;
+          }
+
+          // خطوة 1, 3, 5, ...: المقارنة
+          simulationHistory.push({
+            arrayState: { highlightIndex: i, algorithm: "sequential" },
+            logEntry: {
+              currentIndex: i,
+              currentValue: currentValue,
+              target: target,
+              decision: decisionText,
+            },
+            message: `الخطوة ${
+              i + 1
+            }: مقارنة ${target} مع العنصر عند الفهرس ${i} (${currentValue}).`,
+            isError: false,
+          });
+
+          if (foundIndex !== -1) {
+            // خطوة النجاح
+            simulationHistory.push({
+              arrayState: {
+                highlightIndex: i,
+                algorithm: "sequential",
+                foundIndex: i,
+              },
+              logEntry: {
+                currentIndex: i,
+                currentValue: currentValue,
+                target: target,
+                decision: decisionText,
+              },
+              message: `انتهى البحث: تم العثور على القيمة ${target} عند الفهرس ${i}.`,
+              isError: false,
+            });
+            break;
+          }
+        }
+
+        if (foundIndex === -1) {
+          // خطوة الفشل
+          simulationHistory.push({
+            arrayState: {
+              highlightIndex: -1,
+              algorithm: "sequential",
+              excludedIndices: new Set(
+                Array.from({ length: array.length }, (_, i) => i)
+              ),
+            },
+            logEntry: {
+              currentIndex: "N/A",
+              currentValue: "N/A",
+              target: target,
+              decision: "فشل: تم فحص كل العناصر.",
+            },
+            message: `انتهى البحث: لم يتم العثور على القيمة ${target} في المصفوفة.`,
+            isError: true,
+          });
+        }
+      }
+
+      // ===============================================
+      // محاكي البحث الثنائي (Binary Search Simulator)
+      // ===============================================
+      function binarySearchSimulator(target) {
+        let low = 0;
+        let high = array.length - 1;
+        let mid = -1;
+        let stepCount = 0;
+        let excludedIndices = new Set();
+
+        // الخطوة 0: الحالة الأولية
+        simulationHistory.push({
+          arrayState: {
+            lowIndex: low,
+            highIndex: high,
+            excludedIndices: new Set(),
+            algorithm: "binary",
+          },
+          logEntry: {
+            low: low,
+            high: high,
+            mid: "N/A",
+            midValue: "N/A",
+            decision: "بدء البحث. تحديد النطاق الأولي.",
+          },
+          message: `بدء البحث الثنائي عن ${target}. النطاق الأولي: [${low}, ${high}].`,
+          isError: false,
+        });
+
+        while (low <= high) {
+          stepCount++;
+          mid = Math.floor((low + high) / 2);
+          const midElement = array[mid];
+          let decisionText;
+          let isFound = false;
+
+          if (midElement === target) {
+            decisionText = `نجاح: ${midElement} = ${target}. تم العثور على القيمة.`;
+            isFound = true;
+          } else if (midElement < target) {
+            decisionText = `(${midElement} < ${target}): القيمة أكبر، يتم تحريك Low إلى Mid+1.`;
+          } else {
+            decisionText = `(${midElement} > ${target}): القيمة أصغر، يتم تحريك High إلى Mid-1.`;
+          }
+
+          // خطوة المقارنة وتحديد Mid
+          simulationHistory.push({
+            arrayState: {
+              midIndex: mid,
+              lowIndex: low,
+              highIndex: high,
+              excludedIndices: new Set(excludedIndices),
+              algorithm: "binary",
+            },
+            logEntry: {
+              low: low,
+              high: high,
+              mid: mid,
+              midValue: midElement,
+              decision: decisionText,
+            },
+            message: `الخطوة ${stepCount}: مقارنة ${target} مع العنصر الوسيط ${midElement} عند الفهرس ${mid}.`,
+            isError: false,
+          });
+
+          if (isFound) {
+            // خطوة النجاح النهائية
+            simulationHistory.push({
+              arrayState: {
+                midIndex: mid,
+                lowIndex: low,
+                highIndex: high,
+                excludedIndices: new Set(excludedIndices),
+                algorithm: "binary",
+                isFound: true,
+              },
+              logEntry: {
+                low: low,
+                high: high,
+                mid: mid,
+                midValue: midElement,
+                decision: decisionText,
+              },
+              message: `انتهى البحث: تم العثور على القيمة ${target} عند الفهرس ${mid}.`,
+              isError: false,
+            });
+            return;
+          }
+
+          // تحديث النطاق
+          const prevLow = low;
+          const prevHigh = high;
+
+          if (midElement < target) {
+            for (let i = prevLow; i <= mid; i++) {
+              excludedIndices.add(i);
+            }
+            low = mid + 1;
+          } else {
+            for (let i = mid; i <= prevHigh; i++) {
+              excludedIndices.add(i);
+            }
+            high = mid - 1;
+          }
+
+          // خطوة تحديث النطاق (عرض العناصر المستبعدة)
+          if (low <= high) {
+            simulationHistory.push({
+              arrayState: {
+                midIndex: -1,
+                lowIndex: low,
+                highIndex: high,
+                excludedIndices: new Set(excludedIndices),
+                algorithm: "binary",
+              },
+              logEntry: {
+                low: low,
+                high: high,
+                mid: mid,
+                midValue: midElement,
+                decision:
+                  decisionText.replace("،", " وتحديث النطاق إلى ") +
+                  ` [${low}, ${high}].`,
+              },
+              message: `تحديث النطاق: النطاق الجديد هو [${low}, ${high}]. تم استبعاد العناصر السابقة.`,
+              isError: false,
+            });
+          }
+        }
+
+        // خطوة الفشل (Low > High)
+        simulationHistory.push({
+          arrayState: {
+            lowIndex: -1,
+            highIndex: -1,
+            excludedIndices: new Set(
+              Array.from({ length: array.length }, (_, i) => i)
+            ),
+            algorithm: "binary",
+          },
+          logEntry: {
+            low: low,
+            high: high,
+            mid: "N/A",
+            midValue: "N/A",
+            decision: `فشل: Low (${low}) تجاوز High (${high}).`,
+          },
+          message: `انتهى البحث: لم يتم العثور على القيمة ${target} في المصفوفة.`,
+          isError: true,
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شرح مبدأ ترميز هوفمان (القوانين والخطوات)</title>
+    <!-- تحميل Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* خطوط عربية حديثة وجميلة */
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Amiri:wght=400;700&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* لتحديد أن الجدول والمحتوى الرياضي يجب أن تكون قراءة الأرقام فيه يسار-يمين */
+        .ltr-text {
+            direction: ltr;
+        }
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        th, td {
+            text-align: center !important;
+        }
+        .concept-card {
+            border-right: 4px solid #3b82f6; /* Blue-500 */
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .concept-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1);
+        }
+        .step-item {
+            counter-increment: step-counter;
+            position: relative;
+            padding-right: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px dashed #e5e7eb;
+            padding-bottom: 1.5rem;
+        }
+        .step-item::before {
+            content: counter(step-counter);
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 2rem;
+            height: 2rem;
+            background-color: #f59e0b; /* Amber-500 */
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .char-display {
+            direction: ltr; /* لضمان عرض الأرقام والحروف اللاتينية بشكل صحيح داخل النص العربي */
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- شريط التنقل (Navbar) - تم تحديث رابط الرئيسية ليكون مفعّلاً -->
+    <nav class="bg-indigo-800 p-4 shadow-xl sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-white tracking-wider">شجرة هوفمان التفاعلية</a>
+            
+            <!-- روابط سطح المكتب -->
+            <div class="hidden md:flex space-x-4 space-x-reverse text-lg">
+                <!-- تم إضافة bg-indigo-700 وإزالة hover:text-indigo-200 من الرئيسية -->
+                <a href="#" class="text-white bg-indigo-700 p-2 rounded-lg">الرئيسية</a>
+                <!-- <a href="#" class="text-white hover:text-indigo-200 transition duration-150 p-2 rounded-lg">الخوارزمية</a> -->
+                <a href="code.html" class="text-white hover:text-indigo-200 transition duration-150 p-2 rounded-lg">الأمثلة</a>
+                <!-- <a href="#" class="text-white hover:text-indigo-200 transition duration-150 p-2 rounded-lg">اتصل بنا</a> -->
+            </div>
+
+            <!-- زر قائمة الجوال -->
+            <button class="md:hidden text-white focus:outline-none" onclick="toggleMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- قائمة الجوال (مخفية افتراضياً) -->
+        <div id="mobile-menu" class="hidden md:hidden mt-3 space-y-2">
+            <!-- تم إضافة bg-indigo-700 وإزالة hover:bg-indigo-700 من الرئيسية -->
+            <a href="#" class="block text-white bg-indigo-700 p-3 rounded-md">الرئيسية</a>
+            <a href="#" class="block text-white hover:bg-indigo-700 p-3 rounded-md">الخوارزمية</a>
+            <a href="#" class="block text-white hover:bg-indigo-700 p-3 rounded-md">الأمثلة</a>
+            <a href="#" class="block text-white hover:bg-indigo-700 p-3 rounded-md">اتصل بنا</a>
+        </div>
+    </nav>
+    
+
+    <!-- محتوى الصفحة -->
+    <div class="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden mt-8 mb-12 p-8 md:p-10">
+        <header class="text-center mb-10 border-b pb-4">
+            <h1 class="text-4xl font-extrabold text-indigo-700">
+                مبدأ هوفمان: القوانين والخطوات
+            </h1>
+            <p class="mt-2 text-xl text-gray-600">
+                فهم آلية الضغط الأمثل (Lossless Compression)
+            </p>
+        </header>
+        
+        <!-- القسم الأول: القوانين الأساسية -->
+        <section class="mb-12">
+            <h2 class="text-3xl font-bold text-indigo-800 mb-6 border-b-2 border-indigo-200 pb-2 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 ml-3 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2zM9 14v1a3 3 0 003 3h4m-4-18H9a3 3 0 00-3 3v11a3 3 0 003 3h6a3 3 0 003-3V6a3 3 0 00-3-3z" />
+                </svg>
+                القوانين الرياضية لتقييم كفاءة الضغط
+            </h2>
+
+            <p class="text-gray-700 leading-loose mb-4">
+                تعتمد كفاءة ترميز هوفمان على مقياسين رئيسيين لملف الإخراج النهائي:
+            </p>
+            
+            <!-- القانون 1: إجمالي البتات المضغوطة -->
+            <div class="bg-blue-50 p-5 rounded-lg shadow-md mb-6 concept-card border-blue-400">
+                <h3 class="text-xl font-semibold text-blue-800 mb-3">1. إجمالي عدد البتات المضغوطة (Total Bits)</h3>
+                <p class="text-gray-700 mb-3">
+                    يمثل هذا القانون التكلفة الكلية للملف بعد ترميزه بالبتات. وهو مجموع حاصل ضرب تكرار كل حرف في طول رمزه الثنائي المخصص له:
+                </p>
+                <div class="ltr-text text-xl bg-gray-100 p-4 rounded-lg shadow-inner overflow-x-auto">
+                    $$ \text{Total Bits} = \sum_{i=1}^{n} (\text{Frequency}_i \times \text{Code Length}_i) $$
+                </div>
+                <p class="text-sm mt-3 text-blue-600">
+                    <span class="font-mono">Total Bits</span>: إجمالي عدد البتات في الملف المضغوط.
+                    <br>
+                    <span class="font-mono">n</span>: عدد الأحرف الفريدة في النص.
+                </p>
+            </div>
+            
+            <!-- القانون 2: متوسط طول الرمز -->
+            <div class="bg-green-50 p-5 rounded-lg shadow-md concept-card border-green-400">
+                <h3 class="text-xl font-semibold text-green-800 mb-3">2. متوسط طول الرمز (Average Code Length)</h3>
+                <p class="text-gray-700 mb-3">
+                    يشير هذا المقياس إلى متوسط عدد البتات اللازمة لتمثيل كل حرف في الملف المضغوط. كلما كانت هذه القيمة أصغر، كانت كفاءة الضغط أفضل:
+                </p>
+                <div class="ltr-text text-xl bg-gray-100 p-4 rounded-lg shadow-inner overflow-x-auto">
+                    $$ L_{avg} = \frac{\text{Total Bits}}{\text{Total Characters}} = \frac{\sum (\text{Frequency}_i \times \text{Code Length}_i)}{N} $$
+                </div>
+                <p class="text-sm mt-3 text-green-600">
+                    <span class="font-mono">L_{avg}</span>: متوسط طول الرمز (بت/حرف).
+                    <br>
+                    <span class="font-mono">N</span>: العدد الكلي للأحرف في النص الأصلي.
+                </p>
+            </div>
+        </section>
+
+        <!-- القسم الثاني: الخطوات التفصيلية للخوارزمية -->
+        <section class="mb-10">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-gray-300 pb-2 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 ml-3 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M9 9l4-9" />
+                </svg>
+                الخطوات التفصيلية لخوارزمية بناء شجرة هوفمان
+            </h2>
+            <p class="text-gray-700 mb-4">
+                تعتمد الخوارزمية على بناء الشجرة من الأسفل إلى الأعلى (Bottom-Up Approach)، حيث يتم دمج العقد ذات التكرار الأقل باستمرار.
+            </p>
+            
+            <div class="list-none p-0 counter-reset:step-counter">
+                
+                <div class="step-item">
+                    <h3 class="text-xl font-semibold text-amber-800">حساب التكرارات (Frequency Calculation)</h3>
+                    <p class="text-gray-700 mr-10">
+                        قم بحساب عدد مرات تكرار كل حرف فريد (ورقة) موجود في النص المدخل. هذا التكرار يمثل وزن (Weight) العقدة.
+                    </p>
+                </div>
+
+                <div class="step-item">
+                    <h3 class="text-xl font-semibold text-amber-800">بناء قائمة الانتظار (Priority Queue)</h3>
+                    <p class="text-gray-700 mr-10">
+                        أنشئ مجموعة من عقد هوفمان الأولية، حيث تمثل كل عقدة حرفاً ووزنه. يتم ترتيب هذه المجموعة بشكل تصاعدي بناءً على الوزن (التكرار).
+                    </p>
+                </div>
+
+                <div class="step-item">
+                    <h3 class="text-xl font-semibold text-amber-800">التكوين التكراري للشجرة (Iterative Tree Construction)</h3>
+                    <p class="text-gray-700 mr-10">
+                        استمر في تكرار العملية التالية حتى تتبقى عقدة واحدة فقط (وهي جذر الشجرة النهائية):
+                        <ul class="list-disc list-inside mr-6 mt-2 space-y-1">
+                            <li><span class="font-bold">الدمج:</span> اختر وازل العقدتين الأقل وزناً (أقل تكراراً) من القائمة.</li>
+                            <li><span class="font-bold">عقدة الأب:</span> ادمج هاتين العقدتين في عقدة أب جديدة (داخلية).</li>
+                            <li><span class="font-bold">تحديد الوزن:</span> اجعل وزن عقدة الأب الجديدة مساوياً لمجموع أوزان العقدتين الفرعيتين.</li>
+                            <li><span class="font-bold">إعادة الإدراج:</span> أعد عقدة الأب الجديدة إلى القائمة المرتبة مع الحفاظ على الترتيب التصاعدي.</li>
+                        </ul>
+                    </p>
+                </div>
+
+                <div class="step-item">
+                    <h3 class="text-xl font-semibold text-amber-800">توليد رموز التشفير (Code Generation)</h3>
+                    <p class="text-gray-700 mr-10">
+                        بعد اكتمال الشجرة (بقاء عقدة الجذر فقط)، يتم توليد رموز هوفمان بالانتقال من الجذر إلى كل عقدة ورقية:
+                        <ul class="list-disc list-inside mr-6 mt-2 space-y-1">
+                            <li>خصص البت <span class="font-mono ltr-text bg-gray-200 p-1 rounded">0</span> لكل فرع يتجه لليسار.</li>
+                            <li>خصص البت <span class="font-mono ltr-text bg-gray-200 p-1 rounded">1</span> لكل فرع يتجه لليمين.</li>
+                            <li>سلسلة البتات المجمعة على طول المسار من الجذر إلى أي ورقة تمثل رمز هوفمان الفريد للحرف داخل تلك الورقة.</li>
+                        </ul>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- القسم الثالث: العلاقة العكسية (المبدأ) -->
+        <section class="mb-10">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 ml-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                المبدأ: علاقة التكرار بطول الرمز
+            </h2>
+             <blockquote class="mt-4 p-4 bg-purple-100 border-r-4 border-purple-400 text-purple-800 font-semibold italic text-lg">
+                <p>
+                    يضمن المنهج التكراري لبناء الشجرة أن الرموز الأقل تكراراً هي التي يتم دفعها إلى أعمق مستويات الشجرة (الأوراق السفلية)، وبالتالي تحصل على **أطول رمز ثنائي (أكثر بتات)**. بينما تبقى الرموز الأعلى تكراراً قريبة من الجذر، فتحصل على **أقصر رمز ثنائي (أقل بتات)**.
+                </p>
+            </blockquote>
+        </section>
+    </div>
+    
+    <!-- تذييل الصفحة (Footer) -->
+    <footer class="mt-10 bg-gray-800 text-white p-8 md:p-12">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-right border-b border-gray-700 pb-8 mb-6">
+            <!-- معلومات الأستاذ -->
+            <div>
+                <h4 class="text-xl font-bold text-indigo-400 mb-4">إشراف وتطوير</h4>
+                <div class="flex flex-col items-center md:items-end space-y-3">
+                    <!-- مكان الصورة -->
+                    <div class="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center border-2 border-indigo-400 overflow-hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+                    </div>
+                    <p class="text-lg font-semibold text-white">الأستاذ/ [اسم الأستاذ هنا]</p>
+                    <p class="text-sm text-gray-400">مختص في خوارزميات الضغط وهندسة البرمجيات</p>
+                </div>
+            </div>
+
+            <!-- أرقام التواصل -->
+            <div>
+                <h4 class="text-xl font-bold text-indigo-400 mb-4">التواصل</h4>
+                <ul class="space-y-2 text-gray-300">
+                    <li><span class="font-mono char-display">+966 50 XXX XXXX</span> (هاتف)</li>
+                    <li><span class="font-mono char-display">user.example@university.edu</span> (بريد إلكتروني)</li>
+                    <li><span class="font-mono char-display">@TwitterHandle</span> (تويتر/X)</li>
+                </ul>
+            </div>
+
+            <!-- الخبرات العلمية -->
+            <div>
+                <h4 class="text-xl font-bold text-indigo-400 mb-4">الخبرات العلمية</h4>
+                <ul class="space-y-2 text-gray-300 text-sm list-disc list-inside">
+                    <li>درجة الماجستير في علوم الحاسب</li>
+                    <li>خبرة 10+ سنوات في التدريس الجامعي</li>
+                    <li>متخصص في هياكل البيانات والخوارزميات</li>
+                </ul>
+            </div>
+        </div>
+        
+        <p class="text-center text-gray-500 text-sm">
+            تم تطوير هذه المحاكاة التفاعلية بواسطة ضياء كجزء من مشروع [اسم المقرر]. &copy; 2025
+        </p>
+    </footer>
+
+    <!-- Script للتحكم بقائمة الجوال -->
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+    </script>
+    
+    <!-- تضمين مكتبة MathJax لعرض المعادلات الرياضية LaTeX -->
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+</body>
+</html>

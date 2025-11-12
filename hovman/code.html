@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محاكاة خوارزمية هوفمان - خطوة بخطوة</title>
+    <!-- تحميل Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Amiri:wght=400;700&family=Inter:wght=400;700&display=swap");
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: #f8fafc;
+        direction: rtl;
+      }
+      /* تصميم العقدة في الشجرة */
+      .node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background-color: #10b981; /* Emerald-500 */
+        color: white;
+        position: absolute;
+        transition: all 0.5s ease-out;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        font-size: 0.8rem;
+        border: 3px solid #059669;
+        font-family: "Amiri", serif;
+        text-align: center;
+        padding: 5px;
+      }
+      .node.internal {
+        background-color: #3b82f6; /* Blue-500 */
+        border: 3px solid #2563eb;
+        width: 120px;
+        height: 120px;
+      }
+      .node-char {
+        font-size: 0.9rem;
+        font-weight: bold;
+        line-height: 1.1;
+      }
+      .node-freq {
+        font-size: 0.7rem;
+        margin-top: 2px;
+      }
+      /* تصميم خطوط الربط */
+      .connection {
+        position: absolute;
+        height: 2px;
+        background-color: #9ca3af; /* Gray-400 */
+        transform-origin: 0 0;
+        z-index: 5;
+        transition: all 0.5s ease-out;
+      }
+      .connection-label {
+        position: absolute;
+        color: #374151; /* Gray-700 */
+        font-weight: bold;
+        font-size: 0.9rem;
+        background-color: #f8fafc;
+        padding: 2px 4px;
+        border-radius: 4px;
+        z-index: 15;
+        transform: translate(-50%, -50%);
+      }
+      /* لضمان ظهور الأحرف الإنجليزية والرموز بشكل صحيح */
+      .char-display {
+        font-family: "Inter", monospace;
+        direction: ltr;
+      }
+
+      .highlighted-row {
+        background-color: #fef3c7 !important; /* Yellow-100 */
+        border-bottom: 2px solid #f59e0b; /* Yellow-500 */
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- شريط التنقل (Navbar) -->
+    <nav class="bg-indigo-800 p-4 shadow-xl sticky top-0 z-20">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="#" class="text-2xl font-bold text-white tracking-wider"
+          >شجرة هوفمان التفاعلية</a
+        >
+
+        <!-- روابط سطح المكتب -->
+        <div class="hidden md:flex space-x-4 space-x-reverse text-lg">
+          <a
+            href="index.html"
+            class="text-white hover:text-indigo-200 transition duration-150 p-2 rounded-lg"
+            >الرئيسية</a
+          >
+          <a href="code.html" class="text-white bg-indigo-700 p-2 rounded-lg"
+            >المثال</a
+          >
+        </div>
+
+        <!-- زر قائمة الجوال -->
+        <button
+          class="md:hidden text-white focus:outline-none"
+          onclick="toggleMenu()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- قائمة الجوال (مخفية افتراضياً) -->
+      <div id="mobile-menu" class="hidden md:hidden mt-3 space-y-2">
+        <a href="#" class="block text-white hover:bg-indigo-700 p-3 rounded-md"
+          >الرئيسية</a
+        >
+        <a href="#" class="block text-white hover:bg-indigo-700 p-3 rounded-md"
+          >الخوارزمية</a
+        >
+        <a href="#" class="block text-white hover:bg-indigo-700 p-3 rounded-md"
+          >الأمثلة</a
+        >
+        <a href="#" class="block text-white hover:bg-indigo-700 p-3 rounded-md"
+          >اتصل بنا</a
+        >
+      </div>
+    </nav>
+
+    <div
+      class="max-w-6xl mx-auto bg-white shadow-2xl rounded-xl p-6 md:p-10 mt-8 mb-10"
+    >
+      <h1
+        class="text-3xl font-bold text-center text-indigo-700 mb-6 border-b pb-2"
+      >
+        بناء شجرة هوفمان: طريقة الخطوات التفاعلية
+      </h1>
+
+      <!-- منطقة الإدخال والتحكم -->
+      <div class="mb-8 p-6 bg-gray-50 rounded-lg border">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">
+          النص المدخل (سيتم استخدام الأحرف الإنجليزية الصغيرة فقط)
+        </h2>
+        <textarea
+          id="textInput"
+          rows="3"
+          class="w-full mt-1 px-4 py-3 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-left text-lg char-display"
+          placeholder="Enter English text here, only lowercase letters will be counted. Example: huffman coding is efficient..."
+        >
+aabbbccdeeeeff</textarea
+        >
+
+        <button
+          onclick="initializeHuffman()"
+          class="mt-4 w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 shadow-md"
+        >
+          بدء البناء خطوة بخطوة
+        </button>
+      </div>
+
+      <!-- منطقة التحكم بالخطوات -->
+      <div
+        id="stepControls"
+        class="hidden mb-6 p-4 bg-white rounded-xl shadow-lg border border-indigo-200"
+      >
+        <h2
+          id="stepTitle"
+          class="text-2xl font-bold text-center text-indigo-800 mb-4"
+        ></h2>
+
+        <div class="flex justify-between items-center mb-4">
+          <button
+            id="prevBtn"
+            onclick="prevStep()"
+            class="flex items-center bg-gray-300 text-gray-800 py-2 px-4 rounded-lg font-semibold hover:bg-gray-400 transition duration-150 shadow-md disabled:opacity-50"
+            disabled
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 ml-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            السابق
+          </button>
+          <div id="stepIndicator" class="text-xl font-mono text-indigo-600">
+            0 / 0
+          </div>
+          <button
+            id="nextBtn"
+            onclick="nextStep()"
+            class="flex items-center bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 shadow-md disabled:opacity-50"
+          >
+            التالي
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- منطقة عرض الجداول والشجرة -->
+      <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
+        <!-- جدول التكرارات المجمع -->
+        <div
+          class="p-5 bg-blue-50 rounded-xl shadow-lg border-l-4 border-blue-500 overflow-x-auto"
+        >
+          <h3 class="text-lg font-bold text-blue-700 mb-3">
+            جدول التكرارات المجمع (قائمة الانتظار المرتبة)
+          </h3>
+          <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-blue-100">
+              <tr>
+                <th scope="col" class="px-3 py-2 text-center">
+                  المحتوى المدمج
+                </th>
+                <th scope="col" class="px-3 py-2 text-center">التكرار</th>
+                <th scope="col" class="px-3 py-2 text-center">النوع</th>
+              </tr>
+            </thead>
+            <tbody id="combinedTableBody">
+              <tr class="bg-white border-b">
+                <td colspan="3" class="text-center py-4 text-gray-400">
+                  ابدأ الخوارزمية لرؤية الجدول
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- منطقة عرض الشجرة -->
+        <div
+          class="p-5 bg-white rounded-xl shadow-inner border border-green-200"
+        >
+          <h3
+            class="text-lg font-semibold text-green-700 mb-3 border-b pb-2 text-center"
+          >
+            التمثيل المرئي لشجرة هوفمان
+          </h3>
+          <div
+            id="treeVisualization"
+            class="relative min-h-[300px] overflow-auto border border-gray-300 rounded-lg p-4"
+          >
+            <p class="text-center text-gray-500 mt-20" id="treePlaceholder">
+              سيظهر بناء الشجرة هنا خطوة بخطوة.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- منطقة الرموز النهائية والمقاييس (تظهر فقط في الخطوة الأخيرة) -->
+      <div
+        id="finalCodesArea"
+        class="hidden mt-8 p-6 bg-green-50 rounded-xl shadow-lg border-2 border-green-300"
+      >
+        <h3 class="text-2xl font-bold text-green-800 mb-4 border-b pb-2">
+          النتائج النهائية وكفاءة التشفير
+        </h3>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- جدول الرموز النهائية -->
+          <div class="overflow-x-auto">
+            <h4 class="font-bold text-lg text-green-700 mb-2">
+              جدول رموز هوفمان:
+            </h4>
+            <table
+              class="w-full text-sm text-right text-gray-600 border border-green-200 rounded-lg"
+            >
+              <thead class="text-xs text-white uppercase bg-green-600">
+                <tr>
+                  <th scope="col" class="px-3 py-2 text-center">الحرف</th>
+                  <th scope="col" class="px-3 py-2 text-center">التكرار (f)</th>
+                  <th scope="col" class="px-3 py-2 text-center">رمز هوفمان</th>
+                  <th scope="col" class="px-3 py-2 text-center">
+                    طول الرمز (L)
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="finalCodesTableBody">
+                <!-- يتم ملؤه بواسطة JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- حساب متوسط طول الرمز -->
+          <div
+            class="bg-white p-4 rounded-lg shadow-md border border-green-100"
+          >
+            <h4 class="font-bold text-lg text-green-700 mb-3">
+              حساب متوسط طول الرمز (Average Code Length)
+            </h4>
+
+            <div class="text-gray-700 space-y-3">
+              <p class="font-semibold text-md">القانون المستخدم:</p>
+              <div
+                class="bg-gray-100 p-3 rounded-lg char-display text-lg overflow-x-auto"
+              >
+                $$ L_{avg} = \sum_{i=1}^{n} (f_i \times L_i) / N $$
+              </div>
+              <ul class="text-sm list-disc list-inside space-y-1">
+                <li>$$ L_{avg} $$: متوسط طول الرمز (بالبت/حرف)</li>
+                <li>$$ f_i $$ : تكرار الحرف (i)</li>
+                <li>$$ L_i $$ : طول رمز هوفمان للحرف (i)</li>
+                <li>$$ N $$: العدد الكلي للأحرف في النص ($N = \sum f_i$)</li>
+              </ul>
+
+              <p class="font-semibold text-md mt-4">خطوات الحساب:</p>
+              <p
+                id="calculationSteps"
+                class="bg-yellow-50 p-3 rounded-lg text-sm char-display overflow-x-auto"
+              ></p>
+              <p>
+                $$ \frac{1}{١٤} \times \left[ (٤ \times 2) + (٣ \times 2) + (٢
+                \times 3) + (٢ \times 3) + (٢ \times 3) + (١ \times 3) \right] =
+                \frac{٣٥}{١٤} = 2.500 \text{ بت/حرف} $$
+              </p>
+              <p class="font-bold text-lg mt-4 text-green-800">
+                الناتج النهائي (كفاءة التشفير):
+              </p>
+              <p
+                class="text-2xl font-mono text-green-600 bg-green-100 p-3 rounded-lg inline-block shadow-inner"
+              >
+                <span id="avgCodeLength">0</span> بت/حرف
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- تذييل الصفحة (Footer) -->
+    <footer class="mt-10 bg-gray-800 text-white p-8 md:p-12">
+      <div
+        class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-right border-b border-gray-700 pb-8 mb-6"
+      >
+        <!-- معلومات الأستاذ -->
+        <div>
+          <h4 class="text-xl font-bold text-indigo-400 mb-4">إشراف وتطوير</h4>
+          <div class="flex flex-col items-center md:items-end space-y-3">
+            <!-- مكان الصورة -->
+            <div
+              class="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center border-2 border-indigo-400 overflow-hidden"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-10 w-10 text-gray-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <p class="text-lg font-semibold text-white">
+              الأستاذ/ [اسم الأستاذ هنا]
+            </p>
+            <p class="text-sm text-gray-400">
+              مختص في خوارزميات الضغط وهندسة البرمجيات
+            </p>
+          </div>
+        </div>
+
+        <!-- أرقام التواصل -->
+        <div>
+          <h4 class="text-xl font-bold text-indigo-400 mb-4">التواصل</h4>
+          <ul class="space-y-2 text-gray-300">
+            <li>
+              <span class="font-mono char-display">+966 50 XXX XXXX</span>
+              (هاتف)
+            </li>
+            <li>
+              <span class="font-mono char-display"
+                >user.example@university.edu</span
+              >
+              (بريد إلكتروني)
+            </li>
+            <li>
+              <span class="font-mono char-display">@TwitterHandle</span>
+              (تويتر/X)
+            </li>
+          </ul>
+        </div>
+
+        <!-- الخبرات العلمية -->
+        <div>
+          <h4 class="text-xl font-bold text-indigo-400 mb-4">
+            الخبرات العلمية
+          </h4>
+          <ul class="space-y-2 text-gray-300 text-sm list-disc list-inside">
+            <li>درجة الماجستير في علوم الحاسب</li>
+            <li>خبرة 10+ سنوات في التدريس الجامعي</li>
+            <li>متخصص في هياكل البيانات والخوارزميات</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="text-center text-gray-500 text-sm">
+        تم تطوير هذه المحاكاة التفاعلية بواسطة ضياء كجزء من مشروع [اسم المقرر].
+        &copy; 2025
+      </p>
+    </footer>
+
+    <script>
+      // =================================================================
+      // 1. تعريف عقدة شجرة هوفمان ومنطق الدولة (State)
+      // =================================================================
+
+      class HuffmanNode {
+        constructor(char, freq, left = null, right = null, content = null) {
+          this.char = char; // الحرف (إذا كانت ورقة)، Null إذا كانت داخلية
+          this.freq = freq; // التكرار/الوزن
+          this.left = left;
+          this.right = right;
+          // المحتوى المدمج: لحساب أسماء الأحرف أو التكرارات الفرعية التي تم دمجها حديثًا
+          this.content = content || (char !== null ? char : `Freq: ${freq}`);
+
+          // خصائص الموقع للرسم المرئي
+          this.x = 0;
+          this.y = 0;
+          this.width = 0;
+        }
+      }
+
+      let appState = {
+        currentStep: 0,
+        stepHistory: [], // سيخزن قائمة العقد (الجدول المجمع) والجذر الجزئي في كل خطوة
+        totalChars: 0,
+        huffmanCodes: {},
+      };
+
+      // ثوابت الرسم
+      const NODE_WIDTH_LEAF = 90;
+      const NODE_WIDTH_INTERNAL = 120;
+      const VERTICAL_SPACING = 140;
+      const HORIZONTAL_LEAF_SPACING = 120;
+
+      // =================================================================
+      // 2. دوال المساعدة للنسخ العميق (Deep Copy)
+      // =================================================================
+
+      function deepCloneNode(node) {
+        if (!node) return null;
+        const clone = new HuffmanNode(
+          node.char,
+          node.freq,
+          deepCloneNode(node.left),
+          deepCloneNode(node.right),
+          node.content
+        );
+        return clone;
+      }
+
+      function deepCloneNodeList(nodes) {
+        return nodes.map((node) => deepCloneNode(node));
+      }
+
+      // =================================================================
+      // 3. الخطوة الأولى: الترتيب وبناء التاريخ (Step History)
+      // =================================================================
+
+      function initializeHuffman() {
+        const textInput = document.getElementById("textInput").value;
+        const frequencies = calculateFrequencies(textInput);
+        const totalChars = Object.values(frequencies).reduce(
+          (sum, freq) => sum + freq,
+          0
+        );
+
+        if (totalChars === 0) {
+          displayMessage(
+            "الرجاء إدخال نص صالح يحتوي على أحرف إنجليزية.",
+            "red"
+          );
+          document.getElementById("stepControls").classList.add("hidden");
+          return;
+        }
+
+        appState.totalChars = totalChars;
+        appState.stepHistory = buildStepHistory(frequencies);
+        appState.currentStep = 0;
+
+        // إخفاء منطقة الرموز النهائية
+        document.getElementById("finalCodesArea").classList.add("hidden");
+
+        // عرض أدوات التحكم
+        document.getElementById("stepControls").classList.remove("hidden");
+
+        // البدء بالخطوة الأولى
+        nextStep();
+        displayMessage('تم حساب التكرارات. اضغط "التالي" للمتابعة.', "green");
+      }
+
+      function calculateFrequencies(text) {
+        const freq = {};
+        const lowerText = text.toLowerCase();
+        const chars = lowerText.match(/[a-z]/g) || [];
+
+        for (const char of chars) {
+          freq[char] = (freq[char] || 0) + 1;
+        }
+        return freq;
+      }
+
+      // تحضير تاريخ الخطوات بالكامل
+      function buildStepHistory(frequencies) {
+        const history = [];
+
+        // 1. Initial Leaf Nodes (الخطوة 1: جدول التكرارات)
+        const initialNodes = [];
+        for (const char in frequencies) {
+          // العقدة الورقية محتواها هو الحرف نفسه
+          initialNodes.push(
+            new HuffmanNode(char, frequencies[char], null, null, char)
+          );
+        }
+
+        // إذا كان هناك حرف واحد فقط
+        if (initialNodes.length === 1) {
+          const singleNode = initialNodes[0];
+          const root = new HuffmanNode(
+            null,
+            singleNode.freq,
+            singleNode,
+            null,
+            singleNode.char
+          );
+
+          // Step 1: Frequencies
+          history.push({
+            step: 1,
+            title: `الخطوة 1: حساب تكرار الأحرف (تم العثور على حرف واحد فقط '${singleNode.char}')`,
+            nodes: deepCloneNodeList(initialNodes),
+            root: null,
+            merged: [],
+            isFinal: false,
+          });
+
+          // Step 2: Final (Single Node Case)
+          history.push({
+            step: 2,
+            title: `الخطوة 2: اكتمال الشجرة (حالة الحرف الواحد). الرمز هو '0'.`,
+            nodes: [root],
+            root: root,
+            merged: [],
+            isFinal: true,
+          });
+
+          appState.huffmanCodes = {};
+          generateCodes(root, "");
+          return history;
+        }
+
+        // Step 1: Frequencies
+        history.push({
+          step: 1,
+          title: "الخطوة 1: حساب تكرار الأحرف الأولية (الأوراق)",
+          nodes: deepCloneNodeList(initialNodes),
+          root: null,
+          merged: [],
+          isFinal: false,
+        });
+
+        // Step 2: Initial Sorting (الخطوة 2: ترتيب العقد)
+        let nodes = deepCloneNodeList(initialNodes);
+        nodes.sort(
+          (a, b) => a.freq - b.freq || (a.content > b.content ? 1 : -1)
+        );
+
+        history.push({
+          step: 2,
+          title:
+            "الخطوة 2: ترتيب العقد حسب التكرار (الأصغر أولاً) استعداداً للدمج",
+          nodes: deepCloneNodeList(nodes),
+          root: null,
+          merged: [],
+          isFinal: false,
+        });
+
+        let stepCount = 3;
+        // Building the tree iteratively (الخطوات اللاحقة: التجميع/الدمج)
+        while (nodes.length > 1) {
+          const left = nodes.shift();
+          const right = nodes.shift();
+
+          const parent = new HuffmanNode(
+            null,
+            left.freq + right.freq,
+            left,
+            right,
+            // المحتوى المدمج الجديد
+            `(${left.content}, ${right.content})`
+          );
+
+          // Find insertion point to maintain sort
+          let inserted = false;
+          for (let i = 0; i < nodes.length; i++) {
+            // الترتيب حسب التكرار تصاعدياً، ثم حسب الحرف/المحتوى لكسر التعادل
+            if (
+              parent.freq < nodes[i].freq ||
+              (parent.freq === nodes[i].freq &&
+                parent.content < nodes[i].content)
+            ) {
+              nodes.splice(i, 0, parent);
+              inserted = true;
+              break;
+            }
+          }
+          if (!inserted) {
+            nodes.push(parent);
+          }
+
+          // Add history state for the merge
+          const leftLabel = left.char ? `'${left.char}'` : `(${left.content})`;
+          const rightLabel = right.char
+            ? `'${right.char}'`
+            : `(${right.content})`;
+
+          const title = `الخطوة ${stepCount}: دمج العقدتين الأصغر (${leftLabel} و ${rightLabel}) لتكوين عقدة جديدة بالتكرار ${parent.freq.toLocaleString(
+            "ar-EG"
+          )}`;
+
+          history.push({
+            step: stepCount,
+            title: title,
+            nodes: deepCloneNodeList(nodes),
+            root: parent,
+            merged: [{ content: parent.content, freq: parent.freq }],
+            isFinal: false,
+          });
+
+          stepCount++;
+        }
+
+        // Final step: Codes and Metrics (الخطوة الأخيرة: اكتمال الشجرة)
+        const finalStepIndex = history.length - 1;
+        history[finalStepIndex].title = `الخطوة ${
+          stepCount - 1
+        }: اكتمال شجرة هوفمان (الجذر النهائي). انظر الرموز أدناه.`;
+        history[finalStepIndex].isFinal = true;
+
+        // توليد الرموز النهائية لمرة واحدة
+        appState.huffmanCodes = {};
+        generateCodes(history[finalStepIndex].root, "");
+
+        return history;
+      }
+
+      // =================================================================
+      // 4. التحكم في الخطوات والتحديث (Step Navigation & UI Update)
+      // =================================================================
+
+      function toggleMenu() {
+        document.getElementById("mobile-menu").classList.toggle("hidden");
+      }
+
+      function prevStep() {
+        if (appState.currentStep > 1) {
+          appState.currentStep--;
+          updateUI();
+        }
+      }
+
+      function nextStep() {
+        if (appState.currentStep < appState.stepHistory.length) {
+          appState.currentStep++;
+          updateUI();
+        }
+      }
+
+      function updateUI() {
+        const stepIndex = appState.currentStep - 1;
+        const history = appState.stepHistory[stepIndex];
+
+        if (!history) return;
+
+        // تحديث مؤشر ومحتوى الخطوة
+        document.getElementById(
+          "stepIndicator"
+        ).textContent = `${appState.currentStep} / ${appState.stepHistory.length}`;
+        document.getElementById("stepTitle").textContent = history.title;
+
+        // تحديث حالة الأزرار
+        document.getElementById("prevBtn").disabled =
+          appState.currentStep === 1;
+        document.getElementById("nextBtn").disabled =
+          appState.currentStep === appState.stepHistory.length;
+
+        // تحديث الجدول
+        displayCombinedTable(history);
+
+        // تحديث الشجرة
+        if (history.root) {
+          drawHuffmanTree(history.root);
+        } else {
+          // عرض العقد الأولية كنقاط فردية في الخطوات الأولى
+          drawInitialNodes(history.nodes);
+        }
+
+        // عرض الرموز النهائية والمقاييس في الخطوة الأخيرة فقط
+        if (history.isFinal) {
+          displayFinalMetrics();
+          document.getElementById("finalCodesArea").classList.remove("hidden");
+        } else {
+          document.getElementById("finalCodesArea").classList.add("hidden");
+        }
+      }
+
+      function displayCombinedTable(history) {
+        const tableBody = document.getElementById("combinedTableBody");
+        tableBody.innerHTML = "";
+
+        let displayNodes = history.nodes;
+
+        if (displayNodes.length === 0) {
+          tableBody.innerHTML =
+            '<tr class="bg-white border-b"><td colspan="3" class="text-center py-4 text-gray-400">لا توجد عقد متبقية للدمج.</td></tr>';
+          return;
+        }
+
+        // تحديد محتوى العقدة التي تم دمجها حديثاً لتظليلها في الجدول
+        const newlyMergedContent =
+          history.step > 2 ? history.merged[0].content : null;
+
+        displayNodes.forEach((node) => {
+          const isLeaf = node.char !== null;
+          const type = isLeaf ? "ورقة" : "مركبة (داخلية)";
+
+          let isMergedHighlight = false;
+          // تظليل العقدة الجديدة المدمجة (التي ظهرت للتو في القائمة)
+          if (newlyMergedContent && node.content === newlyMergedContent) {
+            isMergedHighlight = true;
+          }
+
+          const row = document.createElement("tr");
+          row.className = `bg-white border-b hover:bg-gray-50 ${
+            isMergedHighlight ? "highlighted-row" : ""
+          }`;
+
+          // استخدام خاصية node.content الجديدة للجدول
+          const contentDisplay = isLeaf ? `'${node.content}'` : node.content;
+
+          row.innerHTML = `
+                    <td class="px-3 py-2 text-center text-sm font-mono char-display">${contentDisplay}</td>
+                    <td class="px-3 py-2 text-center font-mono">${node.freq.toLocaleString(
+                      "ar-EG"
+                    )}</td>
+                    <td class="px-3 py-2 text-center text-sm font-semibold text-gray-600">${type}</td>
+                `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      function displayFinalMetrics() {
+        const initialNodes = appState.stepHistory[0].nodes;
+        const metrics = calculateMetrics(initialNodes);
+
+        // 1. عرض متوسط طول الرمز
+        document.getElementById("avgCodeLength").textContent =
+          metrics.avgCodeLength.toFixed(3);
+
+        // 2. عرض الرموز في الجدول
+        const tableBody = document.getElementById("finalCodesTableBody");
+        tableBody.innerHTML = "";
+
+        // ترتيب الأحرف حسب التكرار تنازلياً
+        const sortedChars = initialNodes.sort((a, b) => b.freq - a.freq);
+
+        let calculationStepsHtml = `$$ \\frac{1}{${appState.totalChars.toLocaleString(
+          "ar-EG"
+        )}} \\times \\left[ `;
+        let firstTerm = true;
+
+        sortedChars.forEach((node) => {
+          const char = node.char;
+          const freq = node.freq;
+          const code = appState.huffmanCodes[char];
+          const codeLength = code ? code.length : 0;
+
+          const row = document.createElement("tr");
+          row.className = `bg-white border-b hover:bg-green-50`;
+
+          row.innerHTML = `
+    <td class="px-3 py-2 text-center font-bold char-display">'${char}'</td>
+    <td class="px-3 py-2 text-center font-mono">${freq.toLocaleString(
+      "ar-EG"
+    )}</td>
+    <td class="px-3 py-2 text-center font-mono text-green-700 char-display">${code}</td>
+    <td class="px-3 py-2 text-center font-mono">${codeLength}</td>
+  `;
+          tableBody.appendChild(row);
+
+          if (!firstTerm) {
+            calculationStepsHtml += " + ";
+          }
+          calculationStepsHtml += `(${freq.toLocaleString(
+            "ar-EG"
+          )} \\times ${codeLength})`;
+          firstTerm = false;
+        });
+
+        calculationStepsHtml += ` \\right] = \\frac{${metrics.totalBits.toLocaleString(
+          "ar-EG"
+        )}}{${appState.totalChars.toLocaleString(
+          "ar-EG"
+        )}} = ${metrics.avgCodeLength.toFixed(3)} \\text{ بت/حرف} $$`;
+
+        document.getElementById("calculationSteps").innerHTML =
+          calculationStepsHtml;
+      }
+
+      function calculateMetrics(initialNodes) {
+        let totalCompressedBits = 0;
+        let totalFrequency = appState.totalChars;
+
+        initialNodes.forEach((node) => {
+          const char = node.char;
+          const freq = node.freq;
+          const code = appState.huffmanCodes[char];
+          const codeLength = code ? code.length : 0;
+
+          totalCompressedBits += freq * codeLength;
+        });
+
+        const avgCodeLength =
+          totalFrequency > 0 ? totalCompressedBits / totalFrequency : 0;
+
+        return { avgCodeLength, totalBits: totalCompressedBits };
+      }
+
+      // توليد الرموز (يتم استدعاؤها مرة واحدة فقط عند اكتمال التاريخ)
+      function generateCodes(node, code) {
+        if (!node) return;
+
+        if (node.char !== null) {
+          appState.huffmanCodes[node.char] = code || "0";
+          return;
+        }
+        if (node.left) {
+          generateCodes(node.left, code + "0");
+        }
+        if (node.right) {
+          generateCodes(node.right, code + "1");
+        }
+      }
+
+      // =================================================================
+      // 5. التمثيل المرئي للشجرة (Visualization Functions)
+      // =================================================================
+
+      function drawInitialNodes(nodes) {
+        const container = document.getElementById("treeVisualization");
+        if (!container) return; // إضافة فحص السلامة
+
+        container.innerHTML = "";
+        container.style.height = `${NODE_WIDTH_LEAF + 50}px`;
+
+        if (nodes.length === 0) {
+          container.innerHTML =
+            '<p class="text-center text-gray-500 mt-20">لا توجد عقد للعرض.</p>';
+          return;
+        }
+
+        const requiredWidth = nodes.length * HORIZONTAL_LEAF_SPACING + 50;
+        container.style.width = `${Math.max(
+          container.clientWidth,
+          requiredWidth
+        )}px`;
+
+        let currentX = 25;
+        nodes.forEach((node) => {
+          const nodeElement = document.createElement("div");
+          nodeElement.className = `node leaf`;
+          nodeElement.style.width = `${NODE_WIDTH_LEAF}px`;
+          nodeElement.style.height = `${NODE_WIDTH_LEAF}px`;
+          nodeElement.style.top = `20px`;
+          nodeElement.style.left = `${currentX}px`;
+
+          nodeElement.innerHTML = `<span class="node-char char-display">'${
+            node.content
+          }'</span><span class="node-freq">${node.freq.toLocaleString(
+            "ar-EG"
+          )}</span>`;
+          nodeElement.style.direction = "ltr";
+          container.appendChild(nodeElement);
+
+          currentX += HORIZONTAL_LEAF_SPACING;
+        });
+        // تم إزالة السطر الذي يسبب الخطأ: document.getElementById('treePlaceholder').style.display = 'none';
+      }
+
+      function drawHuffmanTree(root) {
+        const container = document.getElementById("treeVisualization");
+        if (!container) return; // إضافة فحص السلامة
+
+        container.innerHTML = "";
+
+        // 1. تحديد إحداثيات العقد وعرض كل فرع
+        const { width: totalWidth } = layoutAndPosition(root, 0, 0);
+
+        // 2. إعادة حساب المواقع لتركيز الشجرة في المنتصف
+        const requiredWidth = Math.max(
+          container.clientWidth,
+          totalWidth + NODE_WIDTH_INTERNAL + 50
+        );
+        container.style.width = `${requiredWidth}px`;
+
+        const offsetX = (requiredWidth - totalWidth) / 2;
+        layoutAndPosition(root, 0, offsetX); // إعادة التشغيل مع إزاحة المركز
+
+        // 3. رسم العقد والروابط
+        renderNodesAndConnections(root, container);
+
+        // 4. ضبط ارتفاع الحاوية
+        let maxDepth = 0;
+        const nodesList = [];
+        collectNodes(root, nodesList, 0);
+        maxDepth = nodesList.reduce(
+          (max, node) => Math.max(max, node.y / VERTICAL_SPACING),
+          0
+        );
+        container.style.height = `${(maxDepth + 1) * VERTICAL_SPACING + 50}px`;
+        // تم إزالة السطر الذي يسبب الخطأ: document.getElementById('treePlaceholder').style.display = 'none';
+      }
+
+      function layoutAndPosition(node, depth, minX) {
+        if (!node) return { width: 0, center: minX };
+
+        const currentNodeWidth =
+          node.char !== null ? NODE_WIDTH_LEAF : NODE_WIDTH_INTERNAL;
+
+        node.y = depth * VERTICAL_SPACING;
+
+        if (node.char !== null) {
+          // Leaf Node
+          node.width = HORIZONTAL_LEAF_SPACING;
+          node.x = minX + node.width / 2;
+          return { width: node.width, center: node.x };
+        }
+
+        // Internal Node
+        const leftResult = layoutAndPosition(node.left, depth + 1, minX);
+        const rightStartX = minX + leftResult.width;
+        const rightResult = layoutAndPosition(
+          node.right,
+          depth + 1,
+          rightStartX
+        );
+
+        const totalWidth = leftResult.width + rightResult.width;
+        node.width = totalWidth;
+        node.x = minX + totalWidth / 2;
+
+        return { width: totalWidth, center: node.x };
+      }
+
+      function collectNodes(node, list, depth) {
+        if (node) {
+          list.push(node);
+          collectNodes(node.left, list, depth + 1);
+          collectNodes(node.right, list, depth + 1);
+        }
+      }
+
+      function renderNodesAndConnections(node, container) {
+        if (!node) return;
+
+        const nodeElement = document.createElement("div");
+        const isLeaf = node.char !== null;
+        const currentNodeWidth = isLeaf ? NODE_WIDTH_LEAF : NODE_WIDTH_INTERNAL;
+        const currentNodeHeight = isLeaf
+          ? NODE_WIDTH_LEAF
+          : NODE_WIDTH_INTERNAL;
+
+        nodeElement.className = `node ${isLeaf ? "leaf" : "internal"}`;
+        nodeElement.style.width = `${currentNodeWidth}px`;
+        nodeElement.style.height = `${currentNodeHeight}px`;
+        nodeElement.style.top = `${node.y}px`;
+        nodeElement.style.left = `${node.x - currentNodeWidth / 2}px`;
+
+        const charDisplay = isLeaf ? `'${node.content}'` : node.content;
+
+        nodeElement.innerHTML = `<span class="node-char char-display">${charDisplay}</span><span class="node-freq text-xs font-mono">${node.freq.toLocaleString(
+          "ar-EG"
+        )}</span>`;
+
+        nodeElement.style.direction = "ltr";
+
+        container.appendChild(nodeElement);
+
+        if (node.left) {
+          drawConnection(container, node, node.left, "0", currentNodeWidth);
+          renderNodesAndConnections(node.left, container);
+        }
+        if (node.right) {
+          drawConnection(container, node, node.right, "1", currentNodeWidth);
+          renderNodesAndConnections(node.right, container);
+        }
+      }
+
+      function drawConnection(container, parent, child, label, parentNodeSize) {
+        const startX = parent.x;
+        const startY = parent.y + parentNodeSize / 2;
+        const endX = child.x;
+        const childNodeSize =
+          child.char !== null ? NODE_WIDTH_LEAF : NODE_WIDTH_INTERNAL;
+        const endY = child.y + childNodeSize / 2;
+
+        const radius = parentNodeSize / 2;
+        const endRadius = childNodeSize / 2;
+
+        const angleRad = Math.atan2(endY - startY, endX - startX);
+
+        // Adjust start point to the edge of the parent circle
+        const startX_Adj = startX + radius * Math.cos(angleRad);
+        const startY_Adj = startY + radius * Math.sin(angleRad);
+
+        // Adjust end point to the edge of the child circle
+        const endX_Adj = endX - endRadius * Math.cos(angleRad);
+        const endY_Adj = endY - endRadius * Math.sin(angleRad);
+
+        const dx = endX_Adj - startX_Adj;
+        const dy = endY_Adj - startY_Adj;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx);
+
+        const connection = document.createElement("div");
+        connection.className = "connection";
+        connection.style.width = `${length}px`;
+        connection.style.top = `${startY_Adj}px`;
+        connection.style.left = `${startX_Adj}px`;
+        connection.style.transform = `rotate(${angle}rad)`;
+        container.appendChild(connection);
+
+        const labelElement = document.createElement("div");
+        labelElement.className = "connection-label char-display";
+
+        const labelX = startX_Adj + dx / 2;
+        const labelY = startY_Adj + dy / 2 + (label === "0" ? 0 : 0);
+
+        labelElement.style.top = `${labelY}px`;
+        labelElement.style.left = `${labelX}px`;
+        labelElement.textContent = label;
+        labelElement.style.direction = "ltr";
+        container.appendChild(labelElement);
+      }
+
+      function displayMessage(message, type) {
+        console.log(`[${type}]: ${message}`);
+      }
+
+      document.addEventListener("DOMContentLoaded", initializeHuffman);
+    </script>
+    <!-- تضمين مكتبة MathJax لعرض المعادلات الرياضية LaTeX -->
+    <script
+      type="text/javascript"
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+  </body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محول الأعداد الحقيقية: ثنائي وعشري</title>
+    <!-- تحميل Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- تعيين الخط وبعض الإعدادات الافتراضية لـ Tailwind -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap");
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: #f3f4f6;
+      }
+      /* تصميم الجدول ليكون واضحاً وجميلاً */
+      .conversion-table th,
+      .conversion-table td {
+        padding: 8px 12px;
+        text-align: center;
+      }
+      .conversion-table th {
+        background-color: #10b981; /* green-500 */
+        color: white;
+        font-weight: bold;
+      }
+      .conversion-table td {
+        border-bottom: 1px solid #d1d5db; /* gray-300 */
+      }
+      .conversion-table tr:last-child td {
+        border-bottom: none;
+      }
+      .fraction-display {
+        font-size: 0.85rem;
+        color: #4b5563; /* gray-600 */
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 md:p-10">
+      <!-- العنوان الرئيسي -->
+      <h1
+        class="text-3xl font-bold text-center text-indigo-700 mb-8 border-b-2 pb-2"
+      >
+        محول الأعداد (ثنائي &harr; عشري) - للأعداد الحقيقية
+      </h1>
+
+      <!-- حاوية الأقسام -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- القسم الأول: من ثنائي إلى عشري -->
+        <div
+          id="binary-to-decimal-card"
+          class="bg-indigo-50 p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl"
+        >
+          <h2 class="text-xl font-bold text-indigo-600 mb-4">
+            من ثنائي حقيقي إلى عشري حقيقي
+          </h2>
+          <div class="mb-4">
+            <label
+              for="binaryInput"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >أدخل عدد ثنائي حقيقي (مثلاً: 101.01):</label
+            >
+            <input
+              type="text"
+              id="binaryInput"
+              placeholder="مثل: 10110.101"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-left"
+              dir="ltr"
+            />
+          </div>
+          <button
+            onclick="convertBinaryToDecimal()"
+            class="w-full bg-indigo-500 text-white py-2 rounded-lg font-semibold hover:bg-indigo-600 transition duration-150 shadow-md"
+          >
+            تحويل إلى عشري
+          </button>
+
+          <div class="mt-6 p-4 bg-white rounded-lg border border-indigo-200">
+            <h3 class="text-lg font-bold text-indigo-700 mb-2">
+              النتيجة العشرية:
+            </h3>
+            <p
+              id="decimalResult"
+              class="text-2xl font-mono text-gray-800 text-left"
+              dir="ltr"
+            >
+              0
+            </p>
+          </div>
+
+          <!-- خطوات الحل للتحويل من ثنائي لعشري -->
+          <div class="mt-6 border-t pt-4">
+            <h3 class="text-lg font-bold text-gray-800 mb-2">خطوات الحل</h3>
+            <div
+              id="binarySteps"
+              class="bg-white p-3 rounded-lg border border-gray-300 min-h-[50px] overflow-x-auto text-sm text-gray-700 whitespace-pre-wrap"
+            >
+              <!-- سيتم عرض الخطوات هنا -->
+              أدخل العدد الثنائي للبدء.
+            </div>
+          </div>
+        </div>
+
+        <!-- القسم الثاني: من عشري إلى ثنائي -->
+        <div
+          id="decimal-to-binary-card"
+          class="bg-green-50 p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl"
+        >
+          <h2 class="text-xl font-bold text-green-600 mb-4">
+            من عشري حقيقي إلى ثنائي حقيقي
+          </h2>
+          <div class="mb-4">
+            <label
+              for="decimalInput"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >أدخل عدد عشري حقيقي (مثلاً: 22.625):</label
+            >
+            <input
+              type="text"
+              id="decimalInput"
+              placeholder="مثل: 22.625"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-left"
+              dir="ltr"
+            />
+          </div>
+          <button
+            onclick="convertDecimalToBinary()"
+            class="w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition duration-150 shadow-md"
+          >
+            تحويل إلى ثنائي
+          </button>
+
+          <div class="mt-6 p-4 bg-white rounded-lg border border-green-200">
+            <h3 class="text-lg font-bold text-green-700 mb-2">
+              النتيجة الثنائية:
+            </h3>
+            <p
+              id="binaryResult"
+              class="text-2xl font-mono text-gray-800 text-left"
+              dir="ltr"
+            >
+              0
+            </p>
+          </div>
+
+          <!-- خطوات الحل للتحويل من عشري لثنائي -->
+          <div class="mt-6 border-t pt-4">
+            <h3 class="text-lg font-bold text-gray-800 mb-2">خطوات الحل</h3>
+            <div
+              id="decimalSteps"
+              class="bg-white p-3 rounded-lg border border-gray-300 min-h-[50px] overflow-x-auto text-sm text-gray-700 whitespace-pre-wrap"
+            >
+              <!-- سيتم عرض الخطوات هنا -->
+              أدخل العدد العشري للبدء.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- رسالة الخطأ (تستخدم لإظهار الأخطاء بدل Alert) -->
+      <div
+        id="errorMessage"
+        class="fixed bottom-4 left-1/2 transform -translate-x-1/2 p-4 bg-red-600 text-white rounded-lg shadow-xl hidden transition-opacity duration-300 z-50"
+      >
+        <!-- محتوى الخطأ هنا -->
+      </div>
+    </div>
+
+    <script>
+      // دالة لعرض رسالة خطأ مؤقتة (بدلاً من alert)
+      function showMessage(message, isError = true) {
+        const msgBox = document.getElementById("errorMessage");
+        msgBox.textContent = message;
+        msgBox.className = `fixed bottom-4 left-1/2 transform -translate-x-1/2 p-4 text-white rounded-lg shadow-xl transition-opacity duration-300 z-50 ${
+          isError ? "bg-red-600" : "bg-green-600"
+        } block`;
+        setTimeout(() => {
+          msgBox.classList.add("hidden");
+        }, 5000);
+      }
+
+      /**
+       * دالة مساعدة لإيجاد القاسم المشترك الأكبر (GCD)
+       * تستخدم لتبسيط الكسر.
+       */
+      function gcd(a, b) {
+        return b ? gcd(b, a % b) : a;
+      }
+
+      /**
+       * دالة لتحويل كسر عشري (أقل من 1) إلى صيغة كسر اعتيادي (البسط/المقام)
+       * مثال: 0.625 => "5/8"
+       */
+      function toFraction(decimal) {
+        if (decimal === 0) return "0";
+
+        // للحفاظ على الدقة، نضرب في قوة 10 حتى يصبح العدد صحيحاً
+        const len = decimal.toString().length - 2; // عدد المنازل العشرية
+        const denominator = Math.pow(10, len);
+        const numerator = Math.round(decimal * denominator);
+
+        const commonDivisor = gcd(numerator, denominator);
+
+        return `${numerator / commonDivisor}/${denominator / commonDivisor}`;
+      }
+
+      // =============================================================
+      // دالة التحويل من ثنائي إلى عشري (تدعم الكسور)
+      // =============================================================
+      function convertBinaryToDecimal() {
+        const binaryInput = document.getElementById("binaryInput").value.trim();
+        const decimalResultElement = document.getElementById("decimalResult");
+        const stepsElement = document.getElementById("binarySteps");
+
+        // 1. التحقق من صحة الإدخال (يجب أن يحتوي على 0 و 1 مع نقطة اختيارية واحدة)
+        if (!/^[01]+(\.[01]+)?$/.test(binaryInput) || binaryInput === "") {
+          decimalResultElement.textContent = "خطأ";
+          stepsElement.textContent =
+            "خطأ: يرجى إدخال أرقام ثنائية صحيحة (0 و 1) مع فاصلة عشرية اختيارية واحدة.";
+          showMessage("خطأ: يرجى إدخال عدد ثنائي حقيقي صحيح.", true);
+          return;
+        }
+
+        const parts = binaryInput.split(".");
+        const integerPart = parts[0];
+        const fractionalPart = parts.length > 1 ? parts[1] : "";
+
+        let decimalValue = 0;
+        let formulaParts = [];
+        let calculationSteps = "";
+
+        let steps =
+          "نقسم العدد الثنائي إلى جزء صحيح وكسري. نضرب الجزء الصحيح في قوى 2 الموجبة والجزء الكسري في قوى 2 السالبة.\n\n";
+        steps += "==================================== \n";
+        steps += "--- حساب الجزء الصحيح (قوى 2 الموجبة) ---\n";
+
+        // --- Integer Part ---
+        const integerReversed = integerPart.split("").reverse();
+        integerReversed.forEach((digit, index) => {
+          const powerOfTwo = Math.pow(2, index);
+          const value = parseInt(digit) * powerOfTwo;
+          decimalValue += value;
+          // Add to formula (unshift to keep order correct)
+          formulaParts.unshift(`${digit} \u00D7 2^${index}`);
+          calculationSteps += `| المنزلة ${index}: (${digit}) \u00D7 2^${index} = (${digit}) \u00D7 ${powerOfTwo} = ${value} \n`;
+        });
+
+        // --- Fractional Part ---
+        if (fractionalPart) {
+          steps += "\n--- حساب الجزء الكسري (قوى 2 السالبة) ---\n";
+          fractionalPart.split("").forEach((digit, index) => {
+            const negPower = -(index + 1);
+            const powerOfTwo = Math.pow(2, negPower);
+            const value = parseInt(digit) * powerOfTwo;
+            decimalValue += value;
+            // تم إضافة الكسر في الخطوات هنا
+            const powerFraction = `1/${Math.pow(2, index + 1)}`;
+
+            formulaParts.push(`${digit} \u00D7 2^${negPower}`);
+
+            calculationSteps += `| المنزلة ${negPower}: (${digit}) \u00D7 2^${negPower} = (${digit}) \u00D7 ${powerFraction} = ${value.toFixed(
+              6
+            )} \n`;
+          });
+        }
+
+        steps += calculationSteps;
+        steps += "==================================== \n";
+
+        steps += `الصيغة الكاملة: ${formulaParts.join(" + ")} \n\n`;
+        steps += `النتيجة النهائية (مجموع القيم): ${decimalValue} (عشري) \n`;
+
+        // عرض النتيجة والخطوات
+        decimalResultElement.textContent = decimalValue;
+        stepsElement.textContent = steps;
+      }
+
+      // =============================================================
+      // دالة التحويل من عشري إلى ثنائي (تدعم الكسور)
+      // =============================================================
+      function convertDecimalToBinary() {
+        const decimalInputStr = document
+          .getElementById("decimalInput")
+          .value.trim();
+        const binaryResultElement = document.getElementById("binaryResult");
+        const stepsElement = document.getElementById("decimalSteps");
+
+        const decimalInput = parseFloat(decimalInputStr);
+
+        // 1. التحقق من صحة الإدخال (يجب أن يكون عدد حقيقي غير سالب)
+        if (isNaN(decimalInput) || decimalInput < 0) {
+          binaryResultElement.textContent = "خطأ";
+          stepsElement.innerHTML = "خطأ: يرجى إدخال عدد عشري حقيقي غير سالب.";
+          showMessage("خطأ: يرجى إدخال عدد عشري حقيقي غير سالب.", true);
+          return;
+        }
+
+        if (decimalInput === 0) {
+          binaryResultElement.textContent = "0";
+          stepsElement.innerHTML =
+            "العدد العشري هو 0، وبالتالي العدد الثنائي هو 0.";
+          return;
+        }
+
+        const parts = decimalInputStr.split(".");
+        let tempDecimalInteger = parseInt(parts[0] || "0");
+        // نستخدم السلسلة النصية للجزء الكسري لتجنب فقدان الدقة قدر الإمكان
+        let tempDecimalFractionalStr = parts.length > 1 ? "0." + parts[1] : "0";
+        let tempDecimalFractional = parseFloat(tempDecimalFractionalStr);
+
+        let binaryInteger = "";
+        let binaryFractional = "";
+        let htmlOutput = "";
+        const MAX_FRACTION_DIGITS = 10;
+
+        // ----------------------------------------------------
+        // 1. Integer Part Conversion (القسمة المتكررة على 2)
+        // ----------------------------------------------------
+        htmlOutput += `
+                <h3 class="text-lg font-bold text-gray-800 mb-2">1. تحويل الجزء الصحيح (${tempDecimalInteger} عشري)</h3>
+                <p class="mb-3">نقسم العدد الصحيح على 2 بشكل متكرر ونسجل الباقي.</p>
+                <div class="overflow-x-auto rounded-lg shadow">
+                    <table class="conversion-table w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="rounded-tr-lg">العدد العشري</th>
+                                <th>خارج القسمة (\u00F7 2)</th>
+                                <th class="rounded-tl-lg">الباقي (الرقم الثنائي)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+        if (tempDecimalInteger === 0) {
+          binaryInteger = "0";
+          htmlOutput += `<tr><td>0</td><td>0</td><td class="text-green-700 font-bold">0</td></tr>`;
+        } else {
+          let tempInt = tempDecimalInteger;
+          let binaryDigits = [];
+          while (tempInt > 0) {
+            const currentNumber = tempInt;
+            const remainder = tempInt % 2;
+            const quotient = Math.floor(tempInt / 2);
+
+            htmlOutput += `
+                        <tr class="hover:bg-green-100 transition duration-100">
+                            <td class="font-mono">${currentNumber}</td>
+                            <td class="font-mono">${quotient}</td>
+                            <td class="font-mono text-green-700 font-bold">${remainder}</td>
+                        </tr>
+                    `;
+
+            binaryDigits.push(remainder);
+            tempInt = quotient;
+          }
+          binaryInteger = binaryDigits.reverse().join("");
+        }
+        htmlOutput += "</tbody></table></div>";
+
+        // ----------------------------------------------------
+        // 2. Fractional Part Conversion (الضرب المتكرر في 2)
+        // ----------------------------------------------------
+        if (tempDecimalFractional > 0) {
+          const initialFractional = tempDecimalFractional;
+          const initialFractionalStr = toFraction(initialFractional);
+
+          htmlOutput += `
+                    <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">2. تحويل الجزء الكسري (${initialFractional} أو ${initialFractionalStr})</h3>
+                    <p class="mb-3">نضرب الجزء الكسري في 2 بشكل متكرر. العدد الصحيح الناتج هو الرقم الثنائي، ونستمر بالكسر المتبقي. نتوقف بعد ${MAX_FRACTION_DIGITS} منازل (للدقة) أو عند الوصول للصفر.</p>
+                    <div class="overflow-x-auto rounded-lg shadow">
+                        <table class="conversion-table w-full border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="rounded-tr-lg">الكسر المتبقي (عشري)</th>
+                                    <th>الكسر المتبقي (كسر)</th>
+                                    <th>الناتج (\u00D7 2)</th>
+                                    <th class="rounded-tl-lg">العدد الصحيح (الرقم الثنائي)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+          let tempFract = initialFractional;
+          for (let i = 0; i < MAX_FRACTION_DIGITS && tempFract > 1e-9; i++) {
+            const currentFract = tempFract;
+            const currentFractFraction = toFraction(currentFract);
+
+            const multipliedValue = tempFract * 2;
+            const integerDigit = Math.floor(multipliedValue);
+            let newFractional = multipliedValue - integerDigit;
+
+            // تحويل الكسر الجديد إلى كسر اعتيادي للعرض
+            const newFractionalFraction =
+              newFractional > 1e-9 ? toFraction(newFractional) : "0";
+
+            htmlOutput += `
+                        <tr class="hover:bg-green-100 transition duration-100">
+                            <td class="font-mono text-left" dir="ltr">${currentFract.toFixed(
+                              MAX_FRACTION_DIGITS
+                            )}</td>
+                            <td class="font-mono text-left">
+                                <span class="text-green-800 font-semibold">${currentFractFraction}</span>
+                                <div class="fraction-display">(\u00D7 2 = ${toFraction(
+                                  multipliedValue
+                                )} )</div>
+                            </td>
+                            <td class="font-mono text-left" dir="ltr">${multipliedValue.toFixed(
+                              MAX_FRACTION_DIGITS
+                            )}</td>
+                            <td class="font-mono text-green-700 font-bold">${integerDigit}</td>
+                        </tr>
+                    `;
+
+            binaryFractional += integerDigit;
+            tempFract = newFractional;
+          }
+
+          htmlOutput += "</tbody></table></div>";
+
+          // تم تعديل شرط التوقف باستخدام حد للتسامح مع أخطاء دقة الفاصلة العائمة
+          if (tempFract > 1e-9) {
+            htmlOutput += `<p class="mt-2 text-red-600 text-sm">ملاحظة: عملية التحويل توقفت عند ${MAX_FRACTION_DIGITS} منازل، وقد يكون الكسر لا نهائياً.</p>`;
+          } else {
+            htmlOutput += `<p class="mt-2 text-green-600 text-sm">تم إكمال التحويل الكسري بنجاح (الكسر المتبقي أصبح صفراً).</p>`;
+          }
+        }
+
+        // ----------------------------------------------------
+        // 3. Final Result
+        // ----------------------------------------------------
+        const finalBinaryResult =
+          binaryInteger + (binaryFractional ? "." + binaryFractional : "");
+
+        htmlOutput += `
+                <div class="mt-4 p-3 bg-green-100 rounded-lg border border-green-300">
+                    <p class="font-bold text-green-800">النتيجة النهائية (جمع الجزأين):</p>
+                    <p class="text-xl font-mono text-green-900 mt-1">${finalBinaryResult} (ثنائي)</p>
+                </div>
+            `;
+
+        // عرض النتيجة والخطوات
+        binaryResultElement.textContent = finalBinaryResult;
+        stepsElement.innerHTML = htmlOutput;
+      }
+
+      // تشغيل دالة التحويل عند تحميل الصفحة لأول مرة لإظهار النتيجة الافتراضية
+      window.onload = function () {
+        // قم بتعيين قيم افتراضية للأعداد الحقيقية
+        document.getElementById("binaryInput").value = "101.101";
+        document.getElementById("decimalInput").value = "5.625";
+
+        convertBinaryToDecimal();
+        convertDecimalToBinary();
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محاكاة خوارزمية تشفير قيصر للحروف العربية (فهرس 1-28)</title>
+    <!-- تحميل Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Amiri:wght@400;700&display=swap");
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: #f8fafc;
+      }
+      .cipher-text {
+        font-family: "Amiri", serif;
+        font-size: 1.5rem;
+        letter-spacing: 0.1em;
+      }
+      .alphabet-table th,
+      .alphabet-table td {
+        border: 1px solid #e5e7eb;
+        padding: 4px 8px;
+        text-align: center;
+        font-weight: bold;
+        font-family: "Amiri", serif;
+      }
+      .alphabet-table th {
+        background-color: #eef2ff;
+        color: #4338ca;
+      }
+      .steps-table th,
+      .steps-table td {
+        border: 1px solid #e5e7eb;
+        padding: 8px;
+        text-align: center;
+        font-size: 0.875rem;
+      }
+      .steps-table th {
+        background-color: #10b981;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+      }
+      .steps-table tr:nth-child(even) {
+        background-color: #f3f4f6;
+      }
+      .steps-log-container {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      /* تمييز الحرف الحالي في الجدول */
+      .highlight-current {
+        background-color: #fcd34d !important; /* Amber-300 */
+        color: #92400e;
+      }
+      .formula {
+        font-family: "Courier New", Courier, monospace;
+        direction: ltr;
+      }
+    </style>
+  </head>
+  <body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto bg-white shadow-2xl rounded-xl p-6 md:p-10">
+      <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">
+        محاكي تشفير قيصر (28 حرف عربي - الفهرس يبدأ من 1)
+      </h1>
+
+      <!-- جدول الأبجدية العربية 28 حرف -->
+      <div class="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <h2 class="text-xl font-semibold text-blue-800 mb-3 text-center">
+          جدول الأبجدية العربية والفهارس (1-28)
+        </h2>
+        <div id="alphabetTableContainer" class="overflow-x-auto">
+          <!-- الجدول سيوضع هنا بواسطة JS -->
+        </div>
+      </div>
+
+      <!-- قسم الإعدادات والتحكم -->
+      <div class="mb-8 p-6 bg-gray-50 rounded-lg border">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
+          الإعدادات والعمليات
+        </h2>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+          <div class="flex-1">
+            <label
+              for="textInput"
+              class="block text-sm font-medium text-gray-700"
+              >النص الأصلي / النص المشفر:</label
+            >
+            <textarea
+              id="textInput"
+              rows="3"
+              class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-right"
+              placeholder="أدخل النص هنا للتشفير أو فك التشفير..."
+              oninput="resetCipher(true)"
+            >
+أهلاً بك ضياء</textarea
+            >
+          </div>
+          <div class="w-full md:w-32">
+            <label
+              for="keyInput"
+              class="block text-sm font-medium text-gray-700"
+              >مفتاح الإزاحة (1-27):</label
+            >
+            <input
+              type="number"
+              id="keyInput"
+              value="3"
+              min="1"
+              max="27"
+              class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-center"
+              oninput="resetCipher(true)"
+            />
+          </div>
+        </div>
+
+        <!-- أزرار التحكم في التنقل -->
+        <div class="flex flex-col sm:flex-row gap-3 mt-4">
+          <button
+            onclick="startCipher('encrypt')"
+            id="encryptButton"
+            class="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 shadow-md disabled:opacity-50"
+          >
+            ابدأ التشفير (خطوة 1)
+          </button>
+          <button
+            onclick="startCipher('decrypt')"
+            id="decryptButton"
+            class="flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-150 shadow-md disabled:opacity-50"
+          >
+            ابدأ فك التشفير (خطوة 1)
+          </button>
+        </div>
+        <div class="flex gap-3 mt-3">
+          <button
+            onclick="nextStep()"
+            id="nextButton"
+            class="flex-1 bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition duration-150 shadow-md disabled:opacity-50"
+            disabled
+          >
+            الخطوة التالية &raquo;
+          </button>
+          <button
+            onclick="previousStep()"
+            id="prevButton"
+            class="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold hover:bg-gray-600 transition duration-150 shadow-md disabled:opacity-50"
+            disabled
+          >
+            &laquo; الخطوة السابقة
+          </button>
+          <button
+            onclick="resetCipher(true)"
+            class="bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 transition duration-150 shadow-md"
+          >
+            إعادة الضبط
+          </button>
+        </div>
+      </div>
+
+      <!-- عرض النص المشفر/المفكوك -->
+      <div class="mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
+        <h2 class="text-xl font-semibold text-green-800 mb-2">
+          النتيجة النهائية:
+        </h2>
+        <p
+          id="resultText"
+          class="cipher-text text-gray-700 min-h-[40px] border-b pb-2"
+        >
+          ...
+        </p>
+      </div>
+
+      <!-- منطقة الخطوات والنتائج -->
+      <div
+        class="p-4 bg-white rounded-lg border border-indigo-200 shadow-inner"
+      >
+        <h2 class="text-xl font-semibold text-indigo-700 mb-2">
+          سجل الخطوات لكل حرف:
+        </h2>
+        <p id="statusMessage" class="text-lg font-bold mb-4">
+          اضغط على زر "ابدأ التشفير" أو "ابدأ فك التشفير".
+        </p>
+        <div
+          id="stepsLog"
+          class="steps-log-container bg-gray-100 p-3 rounded-lg border border-gray-300"
+        >
+          <!-- سجل الخطوات يظهر هنا -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // الأبجدية العربية المكونة من 28 حرفاً (من الألف إلى الياء)
+      // تم دمج (ي، ى)، (ه، ة) للحصول على 28 حرفًا أساسيًا لتجنب تعقيد الأشكال المتعددة
+      const ARABIC_ALPHABET = [
+        "ا",
+        "ب",
+        "ت",
+        "ث",
+        "ج",
+        "ح",
+        "خ",
+        "د",
+        "ذ",
+        "ر",
+        "ز",
+        "س",
+        "ش",
+        "ص",
+        "ض",
+        "ط",
+        "ظ",
+        "ع",
+        "غ",
+        "ف",
+        "ق",
+        "ك",
+        "ل",
+        "م",
+        "ن",
+        "ه",
+        "و",
+        "ي",
+      ];
+      const ALPHABET_SIZE = ARABIC_ALPHABET.length; // 28
+
+      let stepsLog, statusMessage, resultText;
+      let currentStepIndex = -1;
+      let simulationHistory = [];
+      let isCipherFinished = false;
+      let operationMode = ""; // 'encrypt' or 'decrypt'
+      let cleanText = "";
+
+      // ===============================================
+      // وظائف دعم الأبجدية والفهرسة (بناءً على الفهرس 1-28)
+      // ===============================================
+
+      // دالة لعرض جدول الأبجدية والفهارس (1-28)
+      function renderAlphabetTable() {
+        const container = document.getElementById("alphabetTableContainer");
+        let tableHTML = `<table class="alphabet-table steps-table w-full"><thead><tr>`;
+
+        // الصف الأول: الفهرس (1-28)
+        tableHTML += '<tr><th class="bg-indigo-600 text-white">الفهرس</th>';
+        ARABIC_ALPHABET.forEach((_, index) => {
+          const displayedIndex = index + 1; // الفهرس الظاهر يبدأ من 1
+          let highlightClass = "";
+
+          if (currentStepIndex >= 0) {
+            const step = simulationHistory[currentStepIndex];
+            // مقارنة بالفهرس 1-28
+            if (displayedIndex === step.arrayState.originalIndex + 1) {
+              highlightClass = "bg-yellow-200 text-black"; // تمييز الحرف الأصلي
+            } else if (displayedIndex === step.arrayState.shiftedIndex + 1) {
+              highlightClass = "bg-green-300 text-black"; // تمييز الحرف المشفر
+            }
+          }
+          tableHTML += `<td class="font-mono ${highlightClass}">${displayedIndex}</td>`;
+        });
+        tableHTML += "</tr>";
+
+        // الصف الثاني: الحرف
+        tableHTML += '<tr><th class="bg-indigo-600 text-white">الحرف</th>';
+        ARABIC_ALPHABET.forEach((char, index) => {
+          const displayedIndex = index + 1; // الفهرس الظاهر يبدأ من 1
+          let highlightClass = "";
+
+          if (currentStepIndex >= 0) {
+            const step = simulationHistory[currentStepIndex];
+            // مقارنة بالفهرس 1-28
+            if (displayedIndex === step.arrayState.originalIndex + 1) {
+              highlightClass = "bg-yellow-200 text-black"; // تمييز الحرف الأصلي
+            } else if (displayedIndex === step.arrayState.shiftedIndex + 1) {
+              highlightClass = "bg-green-300 text-black"; // تمييز الحرف المشفر
+            }
+          }
+          tableHTML += `<td class="text-xl ${highlightClass}">${char}</td>`;
+        });
+        tableHTML += "</tr></thead></table>";
+
+        container.innerHTML = tableHTML;
+      }
+
+      // تحويل النص إلى تنسيق موحد (حرف عربي نقي فقط)
+      function cleanAndNormalizeText(text) {
+        // توحيد الحروف
+        text = text.replace(/[ى]/g, "ي"); // توحيد الألف المقصورة إلى ياء
+        text = text.replace(/[ة]/g, "ه"); // توحيد الهاء المربوطة إلى هاء
+        text = text.replace(/[أآإئؤ]/g, "ا"); // توحيد الهمزات إلى ألف
+        text = text.replace(/[ ][ ]*/g, " "); // توحيد المسافات
+
+        // إزالة أي شيء ليس حرفاً عربياً أو مسافة
+        text = text.replace(/[^ \u0621-\u064A]/g, "");
+
+        return text
+          .toUpperCase()
+          .split("")
+          .filter((char) => char !== " ")
+          .join("");
+      }
+
+      // الحصول على فهرس الحرف (0-27)
+      function getCharIndex(char) {
+        return ARABIC_ALPHABET.indexOf(char); // تعيد 0-27
+      }
+
+      // ===============================================
+      // وظائف التنقل والتحكم
+      // ===============================================
+
+      window.onload = function () {
+        stepsLog = document.getElementById("stepsLog");
+        statusMessage = document.getElementById("statusMessage");
+        resultText = document.getElementById("resultText");
+        renderAlphabetTable();
+        resetCipher(false);
+      };
+
+      function startCipher(mode) {
+        const key = parseInt(document.getElementById("keyInput").value); // المفتاح (1-27)
+        const textInput = document.getElementById("textInput").value;
+        operationMode = mode;
+
+        if (isNaN(key) || key < 1 || key > ALPHABET_SIZE - 1) {
+          showMessage(
+            `مفتاح الإزاحة يجب أن يكون رقماً بين 1 و ${
+              ALPHABET_SIZE - 1
+            } (27).`,
+            true
+          );
+          return;
+        }
+
+        cleanText = cleanAndNormalizeText(textInput);
+
+        if (cleanText.length === 0) {
+          showMessage("يرجى إدخال نص عربي يحتوي على حروف للتشفير.", true);
+          return;
+        }
+
+        if (isCipherFinished) {
+          resetCipher(true);
+          // نعيد التشغيل للتأكد من حساب الخطوات من جديد
+          startCipher(mode);
+          return;
+        }
+
+        if (simulationHistory.length > 0 && currentStepIndex === -1) {
+          // تم حساب الخطوات مسبقاً، ننتقل للخطوة الأولى
+          nextStep();
+          return;
+        }
+
+        // إعادة التهيئة والبدء بحساب الخطوات
+        simulationHistory = [];
+        currentStepIndex = -1;
+        isCipherFinished = false;
+
+        if (mode === "encrypt") {
+          cipherSimulator(cleanText, key, "encrypt");
+          showMessage(
+            `بدء التشفير التفاعلي بالنص "${cleanText}" والمفتاح ${key}.`,
+            false
+          );
+        } else {
+          cipherSimulator(cleanText, key, "decrypt");
+          showMessage(
+            `بدء فك التشفير التفاعلي بالنص "${cleanText}" والمفتاح ${key}.`,
+            false
+          );
+        }
+
+        nextStep();
+      }
+
+      function nextStep() {
+        if (currentStepIndex < simulationHistory.length - 1) {
+          currentStepIndex++;
+          updateVisualization();
+        }
+      }
+
+      function previousStep() {
+        if (currentStepIndex > 0) {
+          currentStepIndex--;
+          updateVisualization();
+        } else if (currentStepIndex === 0) {
+          currentStepIndex--; // نعود إلى حالة البدء (-1)
+          updateVisualization();
+        }
+      }
+
+      function resetCipher(shouldClearMessage = true) {
+        currentStepIndex = -1;
+        simulationHistory = [];
+        isCipherFinished = false;
+        operationMode = "";
+        stepsLog.innerHTML = "";
+        resultText.textContent = "...";
+
+        renderAlphabetTable();
+
+        if (shouldClearMessage) {
+          statusMessage.textContent =
+            'اضغط على زر "ابدأ التشفير" أو "ابدأ فك التشفير".';
+          statusMessage.className = "text-lg font-bold mb-4";
+        }
+
+        updateControlButtons();
+      }
+
+      function updateControlButtons() {
+        const isStarted = currentStepIndex >= 0;
+
+        document.getElementById("nextButton").disabled =
+          isCipherFinished || currentStepIndex === simulationHistory.length - 1;
+        document.getElementById("prevButton").disabled = currentStepIndex <= 0;
+
+        // منع البدء إذا كان قيد العمل
+        document.getElementById("encryptButton").disabled =
+          isStarted && operationMode === "encrypt" && !isCipherFinished;
+        document.getElementById("decryptButton").disabled =
+          isStarted && operationMode === "decrypt" && !isCipherFinished;
+
+        if (isCipherFinished) {
+          document.getElementById("encryptButton").textContent = "إعادة تشفير";
+          document.getElementById("decryptButton").textContent =
+            "إعادة فك التشفير";
+          document.getElementById("encryptButton").disabled = false;
+          document.getElementById("decryptButton").disabled = false;
+        } else if (isStarted) {
+          document.getElementById("encryptButton").textContent =
+            "التشفير قيد التقدم";
+          document.getElementById("decryptButton").textContent =
+            "فك التشفير قيد التقدم";
+        } else {
+          document.getElementById("encryptButton").textContent =
+            "ابدأ التشفير (خطوة 1)";
+          document.getElementById("decryptButton").textContent =
+            "ابدأ فك التشفير (خطوة 1)";
+        }
+      }
+
+      // ===============================================
+      // عرض الخطوات والجداول
+      // ===============================================
+
+      function showMessage(msg, isError) {
+        statusMessage.textContent = msg;
+        statusMessage.className = `text-lg font-bold mb-4 ${
+          isError ? "text-red-600" : "text-green-600"
+        }`;
+      }
+
+      function updateVisualization() {
+        renderAlphabetTable(); // تحديث الجدول لتمييز الحروف
+
+        const step = simulationHistory[currentStepIndex];
+
+        // 1. تحديث الجدول
+        renderCipherTable(
+          simulationHistory.map((s) => s.logEntry),
+          operationMode
+        );
+
+        // 2. تحديث الرسالة
+        showMessage(step.message, step.isError);
+
+        // 3. تحديث النتيجة الجزئية
+        resultText.textContent = step.arrayState.result;
+
+        // 4. تحديث حالة الأزرار
+        if (currentStepIndex === simulationHistory.length - 1) {
+          isCipherFinished = true;
+          showMessage(step.message, false);
+        } else {
+          isCipherFinished = false;
+        }
+
+        // ضمان التمرير لأحدث خطوة
+        const currentStepRow = stepsLog.querySelector(".bg-yellow-200");
+        if (currentStepRow) {
+          currentStepRow.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+
+        updateControlButtons();
+      }
+
+      // عرض خطوات التشفير/فك التشفير كجدول
+      function renderCipherTable(steps, mode) {
+        let headers = [
+          "الترتيب",
+          "الحرف الأصلي",
+          "فهرس (P)",
+          mode === "encrypt" ? "عملية التشفير" : "عملية فك التشفير",
+          "فهرس (C) أو (P)",
+          "الحرف الناتج",
+          "النتيجة الجزئية",
+        ];
+
+        let tableHTML = `<table class="steps-table w-full rounded-lg shadow-lg overflow-hidden">
+                <thead><tr>`;
+        headers.forEach((h) => (tableHTML += `<th>${h}</th>`));
+        tableHTML += `</tr></thead><tbody>`;
+
+        // نعرض الخطوات بترتيب تنازلي (الأحدث أولاً)
+        for (let i = steps.length - 1; i >= 0; i--) {
+          const step = steps[i];
+          const isCurrent = i === currentStepIndex;
+          const rowClass = isCurrent ? "bg-yellow-200" : "";
+
+          if (step.char === "-") continue; // تخطي خطوة البداية والنهاية الفارغة في الجدول
+
+          const originalIndex_1based = step.originalIndex_1based;
+          const shiftedIndex_1based = step.shiftedIndex_1based;
+
+          // الصيغة الرياضية (معبر عنها باستخدام فهرس 1-28)
+          let formula;
+          if (mode === "encrypt") {
+            // C = (P + K - 1) mod 28 + 1
+            formula = `C = (${originalIndex_1based} + ${step.key} - 1) \\mod 28 + 1`;
+          } else {
+            // P = (C - K - 1) mod 28 + 1
+            formula = `P = (${originalIndex_1based} - ${step.key} - 1) \\mod 28 + 1`;
+          }
+
+          const shiftedIndexDisplay =
+            step.intermediateIndex < 0
+              ? `${step.intermediateIndex} \\rightarrow ${shiftedIndex_1based}`
+              : shiftedIndex_1based;
+
+          tableHTML += `<tr class="${rowClass}">
+                    <td>${i + 1}</td>
+                    <td class="cipher-text">${step.char}</td>
+                    <td class="font-mono">${originalIndex_1based}</td>
+                    <td class="font-mono formula">${formula}</td>
+                    <td class="font-mono">${shiftedIndexDisplay}</td>
+                    <td class="cipher-text">${step.resultChar}</td>
+                    <td class="cipher-text">${step.result}</td>
+                </tr>`;
+        }
+
+        tableHTML += "</tbody></table>";
+        stepsLog.innerHTML = tableHTML;
+      }
+
+      // ===============================================
+      // محاكي التشفير (Cipher Simulator)
+      // ===============================================
+      function cipherSimulator(text, key, mode) {
+        let result = "";
+
+        // الخطوة 0: الحالة الأولية (قبل البدء)
+        simulationHistory.push({
+          arrayState: { originalIndex: -1, shiftedIndex: -1, result: "" },
+          logEntry: {
+            char: "-",
+            decision: `بدء عملية ${
+              mode === "encrypt" ? "التشفير" : "فك التشفير"
+            } بالنص ${text} والمفتاح ${key}`,
+          },
+          message: `بدء العملية، المفتاح المستخدم هو: ${key}.`,
+          isError: false,
+        });
+
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+
+          // الفهرس الأساسي (0-27)
+          const originalIndex_0based = getCharIndex(char);
+
+          // الفهرس الظاهر (1-28)
+          const originalIndex_1based = originalIndex_0based + 1;
+
+          let shiftedIndex_0based;
+          let intermediateIndex;
+
+          if (originalIndex_0based === -1) {
+            result += char;
+            continue;
+          }
+
+          if (mode === "encrypt") {
+            // C_0based = (P_0based + K) mod N
+            // (P_1based + K - 1) mod N + 1
+            shiftedIndex_0based = (originalIndex_0based + key) % ALPHABET_SIZE;
+            intermediateIndex = originalIndex_1based + key - 1;
+          } else {
+            // P_0based = (C_0based - K) mod N
+            // (C_1based - K - 1) mod N + 1
+            intermediateIndex = originalIndex_0based - key;
+            // لإبقاء النتيجة موجبة دائماً
+            shiftedIndex_0based =
+              ((intermediateIndex % ALPHABET_SIZE) + ALPHABET_SIZE) %
+              ALPHABET_SIZE;
+          }
+
+          const shiftedIndex_1based = shiftedIndex_0based + 1;
+          const resultChar = ARABIC_ALPHABET[shiftedIndex_0based];
+          result += resultChar;
+
+          // خطوة التشفير/فك التشفير
+          simulationHistory.push({
+            arrayState: {
+              originalIndex: originalIndex_0based,
+              shiftedIndex: shiftedIndex_0based,
+              result: result,
+            },
+            logEntry: {
+              char: char,
+              originalIndex_1based: originalIndex_1based,
+              key: key,
+              intermediateIndex: intermediateIndex, // القيمة قبل Modulo
+              shiftedIndex_1based: shiftedIndex_1based,
+              resultChar: resultChar,
+              result: result,
+            },
+            message: `تمت معالجة الحرف '${char}'. الفهرس الأصلي ${originalIndex_1based}. النتيجة: ${resultChar}. النتيجة الجزئية: ${result}`,
+            isError: false,
+          });
+        }
+
+        // خطوة النهاية
+        simulationHistory.push({
+          arrayState: { originalIndex: -1, shiftedIndex: -1, result: result },
+          logEntry: {
+            char: "-",
+            originalIndex_1based: 0,
+            key: key,
+            intermediateIndex: 0,
+            shiftedIndex_1based: 0,
+            resultChar: "انتهت",
+            result: result,
+          },
+          message: `انتهت العملية. النص النهائي هو: ${result}`,
+          isError: false,
+        });
+      }
+    </script>
+  </body>
+</html>
