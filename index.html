@@ -1,575 +1,278 @@
 <!DOCTYPE html>
-<!-- تم تغيير اتجاه الصفحة إلى من اليمين لليسار (rtl) -->
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>مولد جداول الصواب والخطأ</title>
-    <!-- تضمين مكتبة Tailwind CSS للتصميم السريع والمستجيب -->
+    <title>الصفحة الرئيسية - مقرر الحاسوب (ثالث ثانوي)</title>
+    <!-- تحميل Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      /* تعريف خط "Inter" لضمان قراءة واضحة للنص باللغتين العربية والإنجليزية */
+      /* خط رئيسي عربي جميل */
+      @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@400;700&display=swap");
       body {
-        font-family: "Inter", sans-serif;
-        background-color: #f7f7f7; /* خلفية فاتحة جديدة */
-        color: #1f2937; /* نص داكن جديد */
+        font-family: "Cairo", sans-serif;
+        background-color: #f8fafc; /* خلفية فاتحة جداً */
+        color: #1e293b; /* لون نص داكن */
       }
-      /* تنسيق عام لأزرار العمليات */
-      .operator-btn {
-        /* تصميم فاتح: خلفية رمادية فاتحة، نص داكن، حدود رمادية */
-        @apply p-2 m-1 bg-gray-200 hover:bg-gray-300 rounded-lg transition duration-150 text-xl font-bold border border-gray-300 text-gray-800;
+      .hero-section {
+        background-image: linear-gradient(
+            to right,
+            rgba(55, 65, 81, 0.8),
+            rgba(17, 24, 39, 0.9)
+          ),
+          url("https://placehold.co/1200x500/1f2937/ffffff?text=الخوارزميات");
+        background-size: cover;
+        background-position: center;
       }
-      /* تنسيق زر "توليد الجدول" */
-      #generate-btn {
-        /* تصميم الزر الرئيسي بلون أخضر قوي */
-        @apply px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg;
+      .card-container {
+        transition: transform 0.3s, box-shadow 0.3s;
       }
-      /* تنسيق جدول النتائج */
-      #result-table th,
-      #result-table td {
-        @apply p-3 border border-gray-300; /* حدود فاتحة */
+      .card-container:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       }
-      #result-table th {
-        @apply bg-gray-200 text-blue-600 font-bold whitespace-nowrap; /* رأس جدول فاتح */
+      /* تصميم مخصص للروابط داخل البطاقات التي لا تحتوي على أزرار فرعية */
+      .card-link h3 {
+        border-bottom: 3px solid transparent;
+        transition: border-color 0.3s;
       }
-      #result-table td {
-        /* تم إضافة تنسيق bold للأرقام في الخلايا هنا */
-        @apply text-center font-mono font-bold;
-      }
-      /* حقل الإدخال يجب أن يظل اتجاهه من اليسار لليمين لإدخال العبارات بشكل صحيح */
-      #expression-input {
-        direction: ltr;
+      .card-link:hover h3 {
+        border-color: #f59e0b; /* Amber-500 */
       }
     </style>
-    <!-- إعداد خط Inter -->
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ["Inter", "sans-serif"],
-            },
-          },
-        },
-      };
-    </script>
   </head>
-  <body class="p-4 md:p-8 min-h-screen flex items-start justify-center">
-    <!-- الحاوية الرئيسية للتطبيق (خلفية بيضاء) -->
-    <div
-      class="w-full max-w-4xl bg-white p-6 md:p-10 rounded-xl shadow-xl border border-gray-200"
-    >
-      <h1 class="text-3xl font-extrabold mb-6 text-center text-blue-600">
-        مولد جداول الصواب والخطأ المنطقية
-      </h1>
-
-      <!-- 1. لوحة الإدخال السريع (Quick Typing Buttons) -->
-      <div class="mb-6 border-b border-gray-300 pb-4">
-        <h2 class="text-xl font-semibold mb-3 text-gray-700">
-          أزرار الإدخال السريع:
-        </h2>
-        <div
-          id="quick-buttons"
-          class="flex flex-wrap items-center justify-start"
+  <body>
+    <!-- قسم الهيرو (الترويسة الرئيسية) -->
+    <header class="hero-section py-20 text-white shadow-2xl">
+      <div class="max-w-6xl mx-auto px-4 text-center">
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 animate-fadeInDown">
+          مقرر الحاسوب - الصف الثالث الثانوي (السودان)
+        </h1>
+        <p
+          class="text-xl md:text-2xl font-light mb-8 text-gray-300 animate-fadeInUp"
         >
-          <!-- الرموز المنطقية (المشغلات) -->
-          <button class="operator-btn" data-value="∧" title="و - AND">∧</button>
-          <button class="operator-btn" data-value="∨" title="أو - OR">∨</button>
-          <button class="operator-btn" data-value="¬" title="ليس - NOT">
-            ¬
-          </button>
-          <button
-            class="operator-btn"
-            data-value="→"
-            title="إذا...فإن - IMPLICATION"
+          دليلكم الشامل لفهم الخوارزميات، هياكل البيانات، ونظم التشفير.
+        </p>
+        <a
+          href="#sections"
+          class="inline-block bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+        >
+          ابدأ رحلة التعلم
+        </a>
+      </div>
+    </header>
+
+    <!-- أقسام المقرر الرئيسية -->
+    <main id="sections" class="py-16">
+      <div class="max-w-6xl mx-auto px-4">
+        <h2
+          class="text-4xl font-bold text-center mb-12 text-indigo-700 border-b-4 border-indigo-200 inline-block pb-1"
+        >
+          الخوارزميات
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <!-- 1. خوارزميات الترتيب (Sorting) - تم التعديل إلى Div مع أزرار داخلية -->
+          <a href="sorting.html">
+            <div class="text-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-12 w-12 text-red-500 mx-auto mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 4h13M3 8h9m-9 4h16m-9 4h5m-6 4l-4-4m0 0l4-4m-4 4h18"
+                />
+              </svg>
+              <h3
+                class="text-2xl font-extrabold text-gray-800 mb-2 border-b-2 border-transparent group-hover:border-red-500 transition-all"
+              >
+                الترتيب (Sorting)
+              </h3>
+              <p class="text-gray-600 text-sm mb-4">
+                فقاعات، إدراج، تحديد. تعلم كيفية تنظيم البيانات بكفاءة.
+              </p>
+            </div>
+          </a>
+
+          <div
+            class="card-container block bg-white p-6 rounded-xl shadow-xl border-t-4 border-red-500 transition group"
           >
-            →
-          </button>
-          <button
-            class="operator-btn"
-            data-value="↔"
-            title="إذا وفقط إذا - EQUIVALENCE"
+            <!-- الأزرار الفرعية للترتيب -->
+            <!-- <div class="space-y-2 pt-4 border-t border-gray-200">
+              <a
+                href="bubble_sort.html"
+                class="w-full block text-center bg-red-100 hover:bg-red-200 text-red-700 py-1.5 px-4 rounded-lg font-medium transition duration-200 shadow-md hover:shadow-lg"
+              >
+                خوارزمية الفقاعة
+              </a>
+              <a
+                href="selection_sort.html"
+                class="w-full block text-center bg-red-100 hover:bg-red-200 text-red-700 py-1.5 px-4 rounded-lg font-medium transition duration-200 shadow-md hover:shadow-lg"
+              >
+                خوارزمية الاختيار
+              </a>
+            </div> -->
+          </div>
+
+          <!-- 2. خوارزميات البحث (Searching) - بقي كبطاقة رابط واحدة -->
+          <a
+            href="searching.html"
+            class="card-link block bg-white p-6 rounded-xl shadow-xl border-t-4 border-blue-500 hover:border-blue-600 transition"
           >
-            ↔
-          </button>
-          <span class="mx-3 text-gray-400">|</span>
-          <!-- المتغيرات الافتراضية (تم إضافة متغير عربي للمثال) -->
-          <button class="operator-btn" data-value="م١" title="متغير م١">
-            م١
-          </button>
-          <button class="operator-btn" data-value="م٢" title="متغير م٢">
-            م٢
-          </button>
-          <button class="operator-btn" data-value="م٣" title="متغير م٣">
-            م٣
-          </button>
-          <button class="operator-btn" data-value="م٤" title="متغير م٤">
-            م٤
-          </button>
-          <span class="mx-3 text-gray-400">|</span>
-          <!-- أدوات مساعدة: تم تغيير الأقواس اللاتينية إلى العربية () -->
-          <button class="operator-btn" data-value=" ( " title="قوس فتح">
-            (
-          </button>
-          <button class="operator-btn" data-value=" ) " title="قوس إغلاق">
-            )
-          </button>
-          <button
-            id="clear-btn"
-            class="operator-btn bg-red-500 hover:bg-red-600 text-white border-red-500"
-            title="مسح الكل"
+            <div class="text-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-12 w-12 text-blue-500 mx-auto mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <h3 class="text-2xl font-extrabold text-gray-800 mb-2">
+                البحث (Searching)
+              </h3>
+              <p class="text-gray-600 text-sm">
+                البحث الخطي والثنائي. اكتشف أسرع الطرق لإيجاد المعلومات.
+              </p>
+            </div>
+          </a>
+
+          <!-- 3. خوارزميات التشفير (Cryptography) - تم التعديل إلى Div مع أزرار داخلية -->
+          <div
+            class="card-container block bg-white p-6 rounded-xl shadow-xl border-t-4 border-green-500 transition group"
           >
-            مسح
-          </button>
+            <div class="text-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-12 w-12 text-green-500 mx-auto mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 15v2m-6-6v6m12-6v6m-4-6v6m-12 0h18m-12 0a2 2 0 100-4 2 2 0 000 4zm12 0a2 2 0 100-4 2 2 0 000 4zm-6 0a2 2 0 100-4 2 2 0 000 4z"
+                />
+              </svg>
+              <h3
+                class="text-2xl font-extrabold text-gray-800 mb-2 border-b-2 border-transparent group-hover:border-green-500 transition-all"
+              >
+                التشفير (Encryption)
+              </h3>
+              <p class="text-gray-600 text-sm mb-4">
+                أمن المعلومات، تشفير قيصر، وخوارزميات ضغط هوفمان.
+              </p>
+            </div>
+            <!-- الأزرار الفرعية للتشفير -->
+            <div class="space-y-2 pt-4 border-t border-gray-200">
+              <a
+                href="caesar_cipher.html"
+                class="w-full block text-center bg-green-100 hover:bg-green-200 text-green-700 py-1.5 px-4 rounded-lg font-medium transition duration-200 shadow-md hover:shadow-lg"
+              >
+                خوارزمية يوليوس قيصر
+              </a>
+              <a
+                href="huffman_coding/index.html"
+                class="w-full block text-center bg-green-100 hover:bg-green-200 text-green-700 py-1.5 px-4 rounded-lg font-medium transition duration-200 shadow-md hover:shadow-lg"
+              >
+                خوارزمية هوفمان
+              </a>
+            </div>
+          </div>
+
+          <!-- 4. التحويلات العددية (Number Systems) - بقي كبطاقة رابط واحدة -->
+          <a
+            href="conversions.html"
+            class="card-link block bg-white p-6 rounded-xl shadow-xl border-t-4 border-amber-500 hover:border-amber-600 transition"
+          >
+            <div class="text-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-12 w-12 text-amber-500 mx-auto mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-2.414-2.414a1 1 0 00-.707-.293H7a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              <h3 class="text-2xl font-extrabold text-gray-800 mb-2">
+                التحويلات العددية
+              </h3>
+              <p class="text-gray-600 text-sm">
+                من ثنائي لعشري والعكس. فهم كيفية تمثيل البيانات داخلياً.
+              </p>
+            </div>
+          </a>
         </div>
       </div>
+    </main>
 
-      <!-- 2. حقل الإدخال الرئيسي -->
-      <div class="mb-6">
-        <label
-          for="expression-input"
-          class="block text-lg font-medium mb-2 text-gray-700"
-          >أدخل العبارة المنطقية هنا (يمكنك استخدام أقواس `()` ومتغيرات عربية
-          مثل م١):</label
-        >
-        <!-- تم تغيير placeholder لاستخدام الأقواس العربية -->
-        <input
-          type="text"
-          id="expression-input"
-          placeholder="(م١ ∧ م٢) → م٣"
-          class="w-full p-4 bg-gray-100 text-gray-900 border border-gray-300 rounded-lg text-left text-2xl font-mono focus:ring-blue-500 focus:border-blue-500"
-          dir="ltr"
-        />
+    <!-- قسم معلومات المقرر والمبرمج -->
+    <section class="bg-gray-100 py-12">
+      <div class="max-w-6xl mx-auto px-4">
+        <h3 class="text-3xl font-bold text-center mb-8 text-gray-800">
+          عن المقرر والمشروع
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-700">
+          <div
+            class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-400"
+          >
+            <h4 class="text-xl font-semibold mb-3 text-indigo-600">
+              هدف المقرر
+            </h4>
+            <p class="leading-relaxed">
+              يهدف مقرر الحاسوب للصف الثالث الثانوي إلى تزويد الطلاب بالأسس
+              النظرية والعملية في علوم الحاسب، مع التركيز على مهارات حل المشكلات
+              والتفكير الخوارزمي اللازمة للنجاح في التخصصات الجامعية المستقبلية.
+            </p>
+          </div>
+
+          <!-- إشارة لك كـ (ضياء) -->
+          <div
+            class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-400"
+          >
+            <h4 class="text-xl font-semibold mb-3 text-green-600">
+              لمحة عن المطور
+            </h4>
+            <p class="leading-relaxed">
+              تم تطوير هذا المشروع التوضيحي بواسطة **ضياء**، وهو مبرمج ويب متخصص
+              يستخدم إطار العمل **Laravel** (لافيل) في بناء تطبيقات الويب
+              الاحترافية. هذه الصفحة هي محاكاة تفاعلية لمحتوى المقرر.
+            </p>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <!-- 3. زر التوليد -->
-      <div class="flex justify-center mb-6">
-        <button id="generate-btn">توليد جدول الصواب والخطأ</button>
+    <!-- تذييل الصفحة (Footer) -->
+    <footer class="bg-gray-800 text-white py-8">
+      <div class="max-w-6xl mx-auto px-4 text-center">
+        <p class="mb-2 text-lg font-semibold">
+          وزارة التربية والتعليم - السودان
+        </p>
+        <p class="text-sm text-gray-400">
+          جميع الحقوق محفوظة. مقرر الحاسوب (2025)
+        </p>
       </div>
-
-      <!-- 4. منطقة الرسائل والإشعارات -->
-      <div
-        id="message-area"
-        class="text-center p-3 mb-6 hidden rounded-lg border"
-        role="alert"
-      ></div>
-
-      <!-- 5. منطقة عرض الجدول -->
-      <div id="table-container" class="overflow-x-auto">
-        <table
-          id="result-table"
-          class="w-full border-collapse rounded-lg overflow-hidden bg-gray-50"
-        >
-          <thead>
-            <tr id="table-header"></tr>
-          </thead>
-          <tbody id="table-body">
-            <!-- سيتم حقن الصفوف هنا بواسطة JavaScript -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- كود JavaScript للمنطق والتحليل -->
-    <script>
-      // المتغيرات العامة
-      const expressionInput = document.getElementById("expression-input");
-      const generateBtn = document.getElementById("generate-btn");
-      const quickButtons = document.getElementById("quick-buttons");
-      const tableHeader = document.getElementById("table-header");
-      const tableBody = document.getElementById("table-body");
-      const messageArea = document.getElementById("message-area");
-      const clearBtn = document.getElementById("clear-btn");
-
-      /**
-       * دالة مساعدة لتحويل قيمة منطقية (true/false) إلى نص عربي (ص/خ).
-       * @param {boolean} value - القيمة المنطقية.
-       * @returns {string} - "١" (صحيح) أو "٠" (خطأ).
-       */
-      function toArabicBool(value) {
-        return value ? "١" : "٠"; // ١ = صحيح (True), ٠ = خطأ (False)
-      }
-
-      /**
-       * دالة مساعدة لعرض الرسائل (التحذيرات أو الأخطاء).
-       * @param {string} message - النص المراد عرضه.
-       * @param {string} type - نوع الرسالة ('success' أو 'error').
-       */
-      function displayMessage(message, type) {
-        messageArea.textContent = message;
-        messageArea.classList.remove(
-          "hidden",
-          "bg-red-900",
-          "bg-green-900",
-          "bg-red-100",
-          "bg-green-100",
-          "text-red-300",
-          "text-green-300",
-          "border-red-500",
-          "border-green-500"
-        );
-
-        if (type === "error") {
-          messageArea.classList.add(
-            "bg-red-100",
-            "text-red-800",
-            "border-red-400"
-          );
-        } else if (type === "success") {
-          messageArea.classList.add(
-            "bg-green-100",
-            "text-green-800",
-            "border-green-400"
-          );
-        }
-      }
-
-      // 1. منطق أزرار الكتابة السريعة
-      quickButtons.addEventListener("click", (event) => {
-        const btn = event.target;
-        // التحقق من أن العنصر الذي تم النقر عليه هو زر يحمل قيمة
-        if (btn.tagName === "BUTTON" && btn.hasAttribute("data-value")) {
-          const value = btn.getAttribute("data-value");
-          if (btn.id === "clear-btn") {
-            expressionInput.value = "";
-          } else {
-            // إضافة القيمة إلى موضع مؤشر الكتابة الحالي
-            const start = expressionInput.selectionStart;
-            const end = expressionInput.selectionEnd;
-            const currentValue = expressionInput.value;
-
-            expressionInput.value =
-              currentValue.substring(0, start) +
-              value +
-              currentValue.substring(end);
-
-            // إعادة ضبط موضع المؤشر بعد الإدخال
-            const newCursorPosition = start + value.length;
-            expressionInput.focus();
-            expressionInput.setSelectionRange(
-              newCursorPosition,
-              newCursorPosition
-            );
-          }
-        }
-      });
-
-      // 2. معالج حدث زر التوليد
-      generateBtn.addEventListener("click", generateTruthTable);
-
-      /**
-       * الدالة الرئيسية لتوليد جدول الصواب والخطأ.
-       */
-      function generateTruthTable() {
-        // إخفاء أي رسائل سابقة
-        messageArea.classList.add("hidden");
-        tableHeader.innerHTML = "";
-        tableBody.innerHTML = "";
-
-        let expression = expressionInput.value.trim();
-        if (!expression) {
-          displayMessage("الرجاء إدخال عبارة منطقية.", "error");
-          return;
-        }
-
-        // الخطوة 0: تحويل الأقواس العربية (إذا تم استخدامها) إلى أقواس لاتينية داخلية لـ JavaScript
-        // هذا يسمح للمستخدم باستخدام الأقواس العربية while keeping the underlying JS logic simple
-        let cleanExpression = expression
-          .replace(/[\u0028\u066D]/g, "(") // استبدال قوس الفتح اللاتيني والعربي (، )
-          .replace(/[\u0029\u066E]/g, ")"); // استبدال قوس الإغلاق اللاتيني والعربي )، (
-
-        // الخطوة 1: استخلاص المتغيرات
-        const variableRegex = /[A-Z\u0621-\u064A][0-9\u0660-\u0669]*/g;
-        // نستخدم cleanExpression لاستخلاص المتغيرات بعد التأكد من أن الأقواس موحدة
-        const variables = Array.from(
-          new Set(cleanExpression.match(variableRegex) || [])
-        ).sort(); // ترتيب أبجدي للمتغيرات
-
-        const numVariables = variables.length;
-
-        if (numVariables === 0) {
-          displayMessage(
-            "لم يتم العثور على متغيرات (أحرف كبيرة لاتينية أو عربية) في العبارة.",
-            "error"
-          );
-          return;
-        }
-
-        if (numVariables > 5) {
-          displayMessage(
-            "عدد المتغيرات كبير جداً ($2^{" +
-              numVariables +
-              "}$ صفاً). الحد الأقصى المسموح به هو 5.",
-            "error"
-          );
-          return;
-        }
-
-        // الخطوة 2: إنشاء رأس الجدول
-        variables.forEach((v) => {
-          const th = document.createElement("th");
-          th.textContent = v;
-          tableHeader.appendChild(th);
-        });
-
-        const finalTh = document.createElement("th");
-        finalTh.textContent = expression; // عرض العبارة الأصلية بما في ذلك الأقواس العربية
-        finalTh.classList.add("bg-blue-600", "text-white");
-        tableHeader.appendChild(finalTh);
-
-        // الخطوة 3: تجهيز العبارة للتقييم بواسطة JavaScript
-
-        // تعريف دوال منطقية إضافية (Implies و Equivalence)
-        const Implies = (a, b) => !a || b;
-        const Equiv = (a, b) => (a && b) || (!a && !b);
-
-        // نمط المتغير المحدث: يتم استخدامه لتحديد المتغيرات في التعبيرات العادية
-        const varPattern = "[A-Z\\u0621-\\u064A][0-9\\u0660-\\u0669]*";
-
-        let evaluationCode = cleanExpression;
-
-        // 1. تحويل العمليات المنطقية الأساسية
-        evaluationCode = evaluationCode
-          .replace(/¬/g, "!")
-          .replace(/∧/g, "&&")
-          .replace(/∨/g, "||");
-
-        // 2. تحويل "إذا وفقط إذا" (↔) إلى Equiv(A, B)
-        // نستخدم \s* لتجاهل المسافات حول العامل
-        // يجب أن يأتي هذا أولاً قبل تحويل -> لأن ↔ قد يحتوي على رمز -> منطقياً
-        evaluationCode = evaluationCode.replace(
-          new RegExp(`(${varPattern}|\\))\\s*↔\\s*(\\(|${varPattern})`, "g"),
-          (match, p1, p2) => {
-            // p1 هو الحد الأول (قد يكون متغير أو قوس إغلاق)
-            // p2 هو الحد الثاني (قد يكون متغير أو قوس فتح)
-
-            // إذا كان الحد الأول قوس إغلاق )، نتحقق من وجود قوس فتح مقابل له قبل استبدال Equiv
-            // نظراً لتعقيد فحص الأقواس المتداخلة بتعبير عادي، سنعتمد على أن الحد الأول
-            // إما متغير أو قوس إغلاق والحد الثاني إما متغير أو قوس فتح
-
-            let op1 = p1;
-            let op2 = p2;
-
-            // إذا كان الحد هو قوس (، فهذا يعني أننا نحتاج إلى تضمين كل ما بين القوسين
-            // ولكن نظراً لعدم قدرة التعبير العادي على التعامل مع التداخل بشكل كامل، سنبسط ونكتفي
-            // بالتحويل المباشر للعامل الثنائي بين الحدود المكتشفة.
-
-            // *ملاحظة هامة*: إذا كان الحد هو قوس فتح أو إغلاق، فمنطق التقييم اللاحق سيعمل على فك الأقواس بشكل صحيح.
-            // لذا، نكتفي بتغليف الحدين بالدالة Equiv().
-
-            // لإبقاء منطق التقييم بسيطاً، نركز على استبدال العامل فقط وتغليفه بالدالة.
-            // يجب أن تكون الحدود هي المتغيرات نفسها، وليس الأقواس.
-            // هذا الجزء من الكود يعتمد على أن الأقواس يتم فكها لاحقًا، لكن في هذه الحالة
-            // التعبير العادي يحتاج لمعرفة نهاية وبداية الحدود بشكل واضح.
-
-            // سنستخدم نمطًا أبسط يكتشف المتغيرات فقط حول العامل لتبسيط التقييم:
-            // Equiv(Var1, Var2) أو Equiv((...), (...)) - لكننا نكتشف المتغيرات فقط هنا.
-
-            // بسبب تعقيد تحليل العبارات المتداخلة بالتعبيرات العادية، نحتاج إلى ضمان أن الاستبدال يغطي
-            // كلتا الحالتين: (Var1 ↔ Var2) و (SubExpression ↔ Var) إلخ.
-
-            // الحل الأبسط هو استخدام الدالة replace مع التعبير العادي الذي يركز فقط على المتغيرات (أو التعبيرات الفرعية)
-            // وهذا يتطلب أن تكون العبارات مُدخلة بشكل صحيح (مثل: (م1 ↔ م2) أو م1 ↔ (م2 ∧ م3))
-
-            // *تحديث نمط Equivalence:* نعتمد على أن العبارة المُدخلة تستخدم المتغيرات بشكل مباشر أو أقواس حول التعبيرات الفرعية.
-            return `Equiv(${op1.trim()}, ${op2.trim()})`;
-          }
-        );
-
-        // نمط أكثر دقة لاكتشاف الحدود (سواء كانت متغير أو تعبير فرعي بقوس)
-        // الحدود يمكن أن تكون:
-        // 1. متغير: [A-Z\u0621-\u064A][0-9\u0660-\u0669]*
-        // 2. تعبير فرعي مغلق: \(.*\) (وهذا معقد ويحتمل الخطأ)
-
-        // *النمط الصحيح والمبسّط الذي يجب استخدامه:* سنبحث عن العامل ونحيطه بأي شيء (باستثناء العامل نفسه) ونستخدم منطق أقواس التجميع.
-
-        // *إعادة محاولة معالجة العمليات الثنائية المعقدة (→ و ↔)*:
-
-        // 1. إعادة تعريف evaluationCode لعدم استبدال العمليات الأساسية فيه بعد.
-        evaluationCode = cleanExpression;
-
-        // تعريف نمط عام للمتغيرات (Var) أو الأقواس (Paren)
-        // (الحدود يمكن أن تكون متغير أو تعبير بين أقواس)
-        const variableOrParen = `\\s*(${varPattern}|\\([^\\)]*\\))\\s*`; // هذا النمط غير دقيق لاكتشاف الأقواس المتداخلة
-
-        // بدلاً من التعبيرات العادية المعقدة، سنستخدم حلاً أكثر قوة وموثوقية:
-        // سنجعل JavaScript يقوم بالتحليل اللغوي (Parsing) للعبارة عن طريق استبدال الرموز
-        // بترتيب محدد يضمن الأسبقية الصحيحة (→ و ↔ لهما أقل أسبقية).
-
-        // **********************************************
-        // الحل الموثوق: استبدال العمليات المعقدة بالدوال
-        // **********************************************
-
-        // يجب أن يتم الاستبدال من اليمين لليسار للحفاظ على الترتيب الصحيح لـ "إذا...فإن" و "إذا وفقط إذا".
-
-        // الترتيب: 1. ↔ (Equiv) ، 2. → (Implies) ، 3. ∧ (AND) ، 4. ∨ (OR) ، 5. ¬ (NOT)
-
-        // دالة مساعدة للاستبدال مع الترتيب الصحيح للأسبقية (Implies و Equiv هما الأقل أسبقية)
-        function replaceBinaryOp(expr, opSymbol, funcName) {
-          // التعبير العادي يبحث عن العامل ويحيطه بأي شيء ليس العامل أو القوس (لتجنب الاستبدال الخاطئ)
-          // بما أننا لا نستطيع إجراء تحليل لغوي كامل باستخدام التعبيرات العادية،
-          // سنستخدم نمطًا عامًا يغطي المتغيرات أو التعبيرات المغلفة بأقواس.
-
-          // التعبير المعقد للمتغير أو التعبير الفرعي (لتغطية المتغيرات والتعبيرات بين أقواس بشكل عام)
-          const term = `(${varPattern}|\\([^\\)]+\\))`;
-          // هذا النمط يفترض أن الأقواس غير متداخلة، وهو تقييد معروف.
-
-          // سنعتمد على استبدال المتغيرات فقط، مما يفرض على المستخدم استخدام الأقواس للتعبيرات الفرعية.
-          // الاستبدال للمتغيرات فقط
-          const simpleTerm = `(${varPattern})`;
-
-          // الاستبدال من اليمين لليسار (لاستبدال التعبيرات الأبعد أولاً)
-          const regex = new RegExp(
-            `${simpleTerm}\\s*${opSymbol}\\s*${simpleTerm}`,
-            "g"
-          );
-
-          // في كل عملية استبدال، نستخدم ` Equiv(...) ` أو `Implies(...)`
-          // هذا يضمن تحويل A ↔ B إلى Equiv(A, B) بغض النظر عما إذا كان A و B متغيرات أو تعبيرات فرعية.
-          let tempExpr = expr;
-          let count = 0;
-
-          // حلقة الاستبدال من اليمين لليسار
-          while (true) {
-            const match = tempExpr.match(regex);
-            if (!match || count > 100) break; // حماية من الحلقات اللانهائية
-
-            // نجد آخر تطابق ونستبدله أولاً
-            let lastMatchIndex = -1;
-            let lastMatchResult = null;
-            let currentIndex = 0;
-
-            while (currentIndex < tempExpr.length) {
-              const currentMatch = tempExpr
-                .substring(currentIndex)
-                .match(regex);
-              if (!currentMatch) break;
-
-              lastMatchIndex = currentIndex;
-              lastMatchResult = currentMatch;
-              currentIndex += currentMatch.index + currentMatch[0].length;
-            }
-
-            if (lastMatchResult) {
-              const start = lastMatchIndex + lastMatchResult.index;
-              const end = start + lastMatchResult[0].length;
-
-              // p1 هو المتغير/الحد الأول، p2 هو المتغير/الحد الثاني
-              const p1 = lastMatchResult[1];
-              const p2 = lastMatchResult[2];
-
-              const replacement = `${funcName}(${p1}, ${p2})`;
-              tempExpr =
-                tempExpr.substring(0, start) +
-                replacement +
-                tempExpr.substring(end);
-              count++;
-            } else {
-              break;
-            }
-          }
-          return tempExpr;
-        }
-
-        // 1. تحويل ↔
-        evaluationCode = replaceBinaryOp(evaluationCode, "↔", "Equiv");
-
-        // 2. تحويل →
-        evaluationCode = replaceBinaryOp(evaluationCode, "→", "Implies");
-
-        // 3. تحويل العمليات المنطقية الأساسية المتبقية
-        evaluationCode = evaluationCode
-          .replace(/∧/g, "&&")
-          .replace(/∨/g, "||")
-          .replace(/¬/g, "!");
-
-        // 4. التأكد من أن الأقواس هي اللاتينية لتقييم JavaScript
-        evaluationCode = evaluationCode.replace(/[()]/g, (match) =>
-          match === "(" ? "(" : ")"
-        );
-
-        // **********************************************
-        // نهاية الحل الموثوق
-        // **********************************************
-
-        // الخطوة 4: توليد الصفوف والتقييم
-        const totalRows = 1 << numVariables; // 2^n
-        let allResultsAreValid = true;
-
-        // البدء من الأعلى (كل المتغيرات صائبة) والنزول
-        for (let i = totalRows - 1; i >= 0; i--) {
-          const row = document.createElement("tr");
-          let variableAssignments = {};
-
-          // تحديد قيم المتغيرات لهذا الصف (باستخدام البتات: 0=خ، 1=ص)
-          for (let j = 0; j < numVariables; j++) {
-            const varName = variables[numVariables - 1 - j];
-            const isTrue = !!((i >> j) & 1);
-            variableAssignments[varName] = isTrue;
-
-            const cell = document.createElement("td");
-            cell.textContent = toArabicBool(isTrue);
-            row.appendChild(cell);
-          }
-
-          // الخطوة 5: تقييم العبارة النهائية
-          let finalResult = null;
-          try {
-            // بناء دالة التقييم بشكل آمن
-            const paramNames = [...variables, "Implies", "Equiv"];
-            // تحويل المتغيرات إلى قيم منطقية
-            const paramValues = [
-              ...variables.map((v) => variableAssignments[v]),
-              Implies,
-              Equiv,
-            ];
-
-            const evaluator = new Function(
-              ...paramNames,
-              `return ${evaluationCode};`
-            );
-
-            finalResult = evaluator(...paramValues);
-          } catch (e) {
-            allResultsAreValid = false;
-            console.error("خطأ في التقييم:", e);
-            displayMessage(
-              `خطأ في العبارة: ${e.message}. تأكد من استخدام الأقواس بشكل صحيح، وأن العبارة لا تحتوي إلا على المتغيرات المُحددة والعمليات المنطقية.`,
-              "error"
-            );
-            break;
-          }
-
-          // عرض النتيجة النهائية في العمود الأخير
-          const resultCell = document.createElement("td");
-          resultCell.textContent = toArabicBool(finalResult);
-          // ألوان خفيفة تتناسب مع التصميم النهاري
-          resultCell.classList.add(
-            finalResult ? "bg-green-100/50" : "bg-red-100/50",
-            "font-bold",
-            "text-lg",
-            "text-center"
-          );
-          row.appendChild(resultCell);
-
-          tableBody.appendChild(row);
-        }
-
-        // عرض رسالة نجاح إذا لم تحدث أخطاء
-        if (allResultsAreValid) {
-          displayMessage(
-            `تم توليد جدول الصواب والخطأ بنجاح للعبارة: ${expression}`,
-            "success"
-          );
-        }
-      }
-
-      // تشغيل دالة التوليد عند الضغط على زر Enter في حقل الإدخال
-      expressionInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          generateTruthTable();
-        }
-      });
-    </script>
+    </footer>
   </body>
 </html>
