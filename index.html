@@ -106,7 +106,9 @@
   </head>
   <body>
     <!-- قسم الهيرو (الترويسة الرئيسية) -->
-    <header class="hero-section py-20 text-white shadow-2xl">
+    <header
+      class="hero-section py-20 text-white min-h-screen shadow-2xl h-full"
+    >
       <!-- CANVAS: سيتم وضعها كخلفية متحركة -->
       <canvas id="networkCanvas"></canvas>
 
@@ -289,13 +291,13 @@
     <!-- قسم معلومات المطور -->
     <section class="bg-gray-100 py-12">
       <div class="max-w-6xl mx-auto px-4">
-        <h3
-          class="text-3xl font-bold text-center mb-10 text-gray-800 animate__animated animate__fadeInDown"
+        <h2
+          class="text-4xl font-bold text-center mb-12 text-indigo-700 border-b-4 border-indigo-200 inline-block pb-1 animate__animated animate__zoomIn animate__delay-1s"
         >
           المطور وراء هذا المشروع
-        </h3>
+        </h2>
         <div
-          class="bg-white p-8 rounded-xl shadow-2xl border-l-4 border-indigo-500 max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-6 developer-card-hover"
+          class="bg-white p-8 rounded-xl shadow-2xl border-l-4 border-indigo-500 max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-6 developer-card-hover"
         >
           <!-- الصورة الشخصية لضياء - أنيميشن مخصص: الظهور من اليسار -->
           <div

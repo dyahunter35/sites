@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>آلة حاسبة علمية</title>
+    <!-- تضمين Tailwind CSS القياسي (الاعتماد على الفئات الافتراضية) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* تخصيص الخط ليدعم اللغة العربية بشكل أفضل */
+      @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap");
+
+      /* إعدادات لتطبيق الخط Cairo */
+      body {
+        font-family: "Cairo", sans-serif;
+      }
+
+      /* تعديل CSS إضافي للتأكد من تنسيق النص داخل الأزرار */
+      .calc-button {
+        transition: all 0.15s ease-in-out;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* تأثير الضغط (Active) */
+      .calc-button:active {
+        transform: scale(0.98);
+        opacity: 0.95;
+        box-shadow: none;
+      }
+
+      /* فئة CSS جديدة لتقليص حجم الخط ديناميكياً */
+      /* نستخدم !important لضمان تجاوز فئات Tailwind المدمجة */
+      .text-scale-4xl {
+        font-size: 2.25rem !important; /* 36px */
+      }
+      .text-scale-3xl {
+        font-size: 1.875rem !important; /* 30px */
+      }
+
+      /* ألوان مخصصة للآلة الحاسبة العلمية */
+      .bg-scientific {
+        background-color: #5b21b6; /* Violet-700 */
+      }
+      .hover\:bg-scientific-hover:hover {
+        background-color: #4c1d95; /* Violet-800 */
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-100 flex items-center justify-center min-h-screen p-4 font-sans"
+  >
+    <!-- حاوية الآلة الحاسبة الرئيسية -->
+    <div
+      class="w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden bg-gray-200 border border-gray-300"
+    >
+      <!-- شاشة العرض - باستخدام bg-slate-800 كبديل لـ screen-bg -->
+      <div class="bg-slate-800 text-white p-6 pt-8 rounded-t-2xl">
+        <!-- العرض السابق (العملية الجارية) -->
+        <div
+          id="previous-operand"
+          class="text-left text-lg text-gray-400 h-6 overflow-hidden"
+        ></div>
+        <!-- العرض الحالي (الرقم المدخل) - سنقوم بتطبيق حجم الخط ديناميكياً عبر JS -->
+        <div
+          id="current-operand"
+          class="text-left text-5xl font-bold break-all leading-tight h-16 transition-all duration-100"
+        >
+          0
+        </div>
+      </div>
+
+      <!-- أزرار الآلة الحاسبة - تم تغيير التخطيط إلى 5 أعمدة -->
+      <div class="grid grid-cols-5 gap-2 p-4">
+        <!-- الصف العلمي الأول -->
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="sin"
+        >
+          sin
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="cos"
+        >
+          cos
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="tan"
+        >
+          tan
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="log"
+        >
+          log
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="ln"
+        >
+          ln
+        </button>
+
+        <!-- الصف العلمي الثاني والأزرار الأساسية -->
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="sqrt"
+        >
+          √
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white calc-button"
+          data-operation="clear"
+        >
+          AC
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white calc-button"
+          data-operation="delete"
+        >
+          DEL
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white calc-button"
+          data-function="%"
+        >
+          %
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white calc-button"
+          data-operation="÷"
+        >
+          ÷
+        </button>
+
+        <!-- الصف الثالث: الأرقام والضرب -->
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="pi"
+        >
+          π
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="7"
+        >
+          7
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="8"
+        >
+          8
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="9"
+        >
+          9
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white calc-button"
+          data-operation="×"
+        >
+          ×
+        </button>
+
+        <!-- الصف الرابع: الأرقام والقوى والطرح -->
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="power"
+        >
+          xʸ
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="4"
+        >
+          4
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="5"
+        >
+          5
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="6"
+        >
+          6
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white calc-button"
+          data-operation="-"
+        >
+          -
+        </button>
+
+        <!-- الصف الخامس: الأرقام والأس 2 والجمع -->
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="square"
+        >
+          x²
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="1"
+        >
+          1
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="2"
+        >
+          2
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="3"
+        >
+          3
+        </button>
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white calc-button"
+          data-operation="+"
+        >
+          +
+        </button>
+
+        <!-- الصف السادس: الإشارة، صفر، فاصلة، ويساوي -->
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-scientific hover:bg-scientific-hover text-white calc-button"
+          data-function="sign"
+        >
+          +/-
+        </button>
+        <button
+          class="col-span-2 text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="0"
+        >
+          0
+        </button>
+        <button
+          class="text-2xl font-bold p-4 rounded-xl bg-white hover:bg-gray-200 text-gray-900 calc-button"
+          data-number="."
+        >
+          .
+        </button>
+        <!-- استخدمنا Red 600 كبديل لـ btn-eq -->
+        <button
+          class="text-xl font-semibold p-4 rounded-xl bg-red-600 hover:bg-red-700 text-white calc-button"
+          data-operation="="
+        >
+          =
+        </button>
+      </div>
+    </div>
+
+    <!-- كود جافاسكريبت للعمليات المنطقية -->
+    <script>
+      // دالة لتحويل الدرجات إلى راديان (مهمة للدوال المثلثية في JS)
+      function toRadians(degrees) {
+        return degrees * (Math.PI / 180);
+      }
+
+      class Calculator {
+        constructor(previousOperandTextElement, currentOperandTextElement) {
+          this.previousOperandTextElement = previousOperandTextElement;
+          this.currentOperandTextElement = currentOperandTextElement;
+          this.clear();
+        }
+
+        clear() {
+          this.currentOperand = "0";
+          this.previousOperand = "";
+          this.operation = undefined;
+          this.isAwaitingPower = false; // حالة خاصة لعملية الرفع لأس (x^y)
+        }
+
+        delete() {
+          if (
+            this.currentOperand === "Error" ||
+            this.currentOperand === "NaN"
+          ) {
+            this.clear();
+          } else if (this.currentOperand.length === 1) {
+            this.currentOperand = "0";
+          } else {
+            this.currentOperand = this.currentOperand.toString().slice(0, -1);
+          }
+        }
+
+        appendNumber(number) {
+          if (number === "." && this.currentOperand.includes(".")) return;
+
+          // إذا كنا في وضع انتظار الأس (x^y)، يجب إتمام العملية أولاً
+          if (this.isAwaitingPower) {
+            this.currentOperand = number.toString();
+            this.isAwaitingPower = false;
+          } else if (this.currentOperand === "0" && number !== ".") {
+            this.currentOperand = number.toString();
+          } else if (
+            this.currentOperand === "Error" ||
+            this.currentOperand === "NaN"
+          ) {
+            this.currentOperand = number.toString();
+          } else {
+            this.currentOperand =
+              this.currentOperand.toString() + number.toString();
+          }
+        }
+
+        chooseOperation(operation) {
+          if (this.currentOperand === "Error" || this.currentOperand === "NaN")
+            return;
+
+          if (this.currentOperand === "0" && this.previousOperand === "")
+            return;
+
+          if (this.previousOperand !== "") {
+            this.compute();
+          }
+
+          this.operation = operation;
+          this.previousOperand = this.currentOperand;
+          this.currentOperand = "0"; // مسح الشاشة الحالية للرقم الجديد
+        }
+
+        // تنفيذ الدالة العلمية بناءً على الزر المضغوط
+        performFunction(func) {
+          const current = parseFloat(this.currentOperand);
+          if (isNaN(current) && func !== "pi") return;
+
+          let result;
+          let displayFunc = func; // لغرض العرض في الشاشة السابقة
+
+          switch (func) {
+            case "pi":
+              result = Math.PI;
+              displayFunc = "π";
+              break;
+            case "sqrt":
+              if (current < 0) {
+                result = "Error";
+              } else {
+                result = Math.sqrt(current);
+              }
+              displayFunc = `√(${current})`;
+              break;
+            case "sin":
+              // نستخدم Degrees كافتراضي في واجهة المستخدم الآلة الحاسبة
+              result = Math.sin(toRadians(current));
+              displayFunc = `sin(${current}°)`;
+              break;
+            case "cos":
+              result = Math.cos(toRadians(current));
+              displayFunc = `cos(${current}°)`;
+              break;
+            case "tan":
+              result = Math.tan(toRadians(current));
+              displayFunc = `tan(${current}°)`;
+              break;
+            case "log": // اللوغاريتم العشري (Log10)
+              result = Math.log10(current);
+              displayFunc = `log(${current})`;
+              break;
+            case "ln": // اللوغاريتم الطبيعي (LogE)
+              result = Math.log(current);
+              displayFunc = `ln(${current})`;
+              break;
+            case "square": // التربيع (x^2)
+              result = current * current;
+              displayFunc = `(${current})²`;
+              break;
+            case "power": // الرفع لأس (x^y) - يحتاج لرقم آخر
+              this.operation = "^";
+              this.previousOperand = this.currentOperand;
+              this.currentOperand = "0";
+              this.isAwaitingPower = true; // ننتظر الرقم الثاني للأس
+              return; // لا نحتاج لتحديث الشاشة هنا
+            case "%": // النسبة المئوية
+              result = current / 100;
+              displayFunc = `(${current})%`;
+              break;
+            case "sign": // تغيير الإشارة (+/-)
+              result = current * -1;
+              displayFunc = ""; // لا حاجة لعرضها كعملية سابقة
+              break;
+            default:
+              return;
+          }
+
+          // تحديث الشاشات بعد العملية العلمية
+          if (result === "Error" || isNaN(result)) {
+            this.currentOperand = "Error";
+          } else {
+            this.currentOperand = result.toString();
+          }
+
+          // عرض العملية العلمية التي تمت في الشاشة السابقة
+          if (displayFunc) {
+            this.previousOperand = displayFunc;
+          }
+          this.operation = undefined;
+        }
+
+        compute() {
+          let computation;
+          const prev = parseFloat(this.previousOperand);
+          const current = parseFloat(this.currentOperand);
+
+          if (isNaN(prev) || isNaN(current)) return;
+
+          switch (this.operation) {
+            case "+":
+              computation = prev + current;
+              break;
+            case "-":
+              computation = prev - current;
+              break;
+            case "×":
+              computation = prev * current;
+              break;
+            case "÷":
+              if (current === 0) {
+                this.currentOperand = "Error";
+                this.previousOperand = "";
+                this.operation = undefined;
+                return;
+              }
+              computation = prev / current;
+              break;
+            case "^": // عملية الرفع لأس الجديدة
+              computation = Math.pow(prev, current);
+              break;
+            default:
+              return;
+          }
+
+          this.currentOperand = computation.toString();
+          this.operation = undefined;
+          this.previousOperand = "";
+        }
+
+        getDisplayNumber(number) {
+          const stringNumber = number.toString();
+          const parts = stringNumber.split(".");
+          const integerDigits = parseFloat(parts[0]);
+          const decimalDigits = parts[1];
+          let integerDisplay;
+
+          if (
+            number === "Error" ||
+            number === "NaN" ||
+            number === "Infinity" ||
+            number === "-Infinity"
+          ) {
+            return "خطأ";
+          }
+
+          // استخدام toLocaleString لضمان التعامل السليم مع الأرقام الطويلة
+          if (isNaN(integerDigits)) {
+            integerDisplay = "";
+          } else {
+            // نستخدم 'en' للحصول على فصل رقمي قياسي
+            integerDisplay = integerDigits.toLocaleString("en", {
+              maximumFractionDigits: 0,
+            });
+          }
+
+          if (decimalDigits != null) {
+            return `${integerDisplay}.${decimalDigits}`;
+          } else {
+            return integerDisplay;
+          }
+        }
+
+        updateDisplay() {
+          const currentDisplay = this.getDisplayNumber(this.currentOperand);
+          this.currentOperandTextElement.innerText = currentDisplay;
+
+          // منطق تعديل حجم الخط ديناميكياً لتجنب الاقتصاص (الـ 5xl هو الحجم الافتراضي)
+          this.currentOperandTextElement.classList.remove(
+            "text-5xl",
+            "text-scale-4xl",
+            "text-scale-3xl"
+          );
+
+          if (currentDisplay.length > 18) {
+            this.currentOperandTextElement.classList.add("text-scale-3xl"); // أصغر حجم
+          } else if (currentDisplay.length > 12) {
+            this.currentOperandTextElement.classList.add("text-scale-4xl"); // حجم متوسط
+          } else {
+            this.currentOperandTextElement.classList.add("text-5xl"); // الحجم الطبيعي
+          }
+
+          // تحديث عرض العملية السابقة
+          if (this.operation != null) {
+            let displayOp = this.operation;
+            if (this.operation === "^") {
+              displayOp = "^"; // لتفريقها عن عملية الضرب
+            }
+            this.previousOperandTextElement.innerText = `${this.getDisplayNumber(
+              this.previousOperand
+            )} ${displayOp}`;
+          } else {
+            this.previousOperandTextElement.innerText = "";
+          }
+        }
+      }
+
+      // ----------------------------------------------------
+      // ربط عناصر DOM بمنطق الآلة الحاسبة
+      // ----------------------------------------------------
+
+      // جلب العناصر من HTML
+      const numberButtons = document.querySelectorAll("[data-number]");
+      const operationButtons = document.querySelectorAll("[data-operation]");
+      const functionButtons = document.querySelectorAll("[data-function]"); // جلب الأزرار العلمية الجديدة
+      const previousOperandTextElement =
+        document.getElementById("previous-operand");
+      const currentOperandTextElement =
+        document.getElementById("current-operand");
+
+      // إنشاء مثيل للآلة الحاسبة
+      const calculator = new Calculator(
+        previousOperandTextElement,
+        currentOperandTextElement
+      );
+      calculator.updateDisplay(); // عرض '0' عند التحميل
+
+      // 1. مستمعي الأحداث لأزرار الأرقام والفاصلة
+      numberButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          calculator.appendNumber(button.dataset.number);
+          calculator.updateDisplay();
+        });
+      });
+
+      // 2. مستمعي الأحداث لأزرار العمليات الأساسية (=, AC, DEL, +, -, ×, ÷)
+      operationButtons.forEach((button) => {
+        const operation = button.dataset.operation;
+        button.addEventListener("click", () => {
+          switch (operation) {
+            case "clear":
+              calculator.clear();
+              break;
+            case "delete":
+              calculator.delete();
+              break;
+            case "=":
+              calculator.compute();
+              break;
+            default:
+              // للعمليات الأخرى (+, -, ×, ÷)
+              calculator.chooseOperation(operation);
+              break;
+          }
+          calculator.updateDisplay();
+        });
+      });
+
+      // 3. مستمعي الأحداث لأزرار الدوال العلمية (sin, cos, ln, etc.)
+      functionButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          calculator.performFunction(button.dataset.function);
+          calculator.updateDisplay();
+        });
+      });
+
+      // إضافة دعم لوحة المفاتيح
+      document.addEventListener("keydown", (e) => {
+        // الأرقام والفاصلة العشرية
+        if ((e.key >= "0" && e.key <= "9") || e.key === ".") {
+          calculator.appendNumber(e.key);
+        }
+        // العمليات الحسابية الأساسية
+        else if (
+          e.key === "+" ||
+          e.key === "-" ||
+          e.key === "*" ||
+          e.key === "/"
+        ) {
+          // تحويل * إلى × و / إلى ÷ للعرض
+          const op = e.key === "*" ? "×" : e.key === "/" ? "÷" : e.key;
+          calculator.chooseOperation(op);
+        }
+        // المساواة
+        else if (e.key === "=" || e.key === "Enter") {
+          e.preventDefault();
+          calculator.compute();
+        }
+        // حذف (Backspace)
+        else if (e.key === "Backspace") {
+          calculator.delete();
+        }
+        // مسح كامل (Escape)
+        else if (e.key === "Escape") {
+          calculator.clear();
+        }
+
+        calculator.updateDisplay();
+      });
+    </script>
+  </body>
+</html>
