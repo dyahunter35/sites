@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محول الأعداد الثنائي/العشري مع الخطوات</title>
+    <!-- تحميل Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* خط رئيسي عربي جميل */
+      @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=IBM+Plex+Mono&display=swap");
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: #f7f7f7;
+      }
+      .container-card {
+        background-color: #ffffff;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+          0 5px 10px -5px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e5e7eb;
+      }
+      .table-header-dec {
+        background-color: #10b981; /* Emerald-500 */
+        color: white;
+      }
+      .table-header-bin {
+        background-color: #3b82f6; /* Blue-500 */
+        color: white;
+      }
+      /* تظليل الباقي/الجزء الصحيح في الخطوة الحالية */
+      .highlight-cell {
+        background-color: #fef3c7; /* Amber-100 */
+        font-weight: bold;
+      }
+      .mono-font {
+        font-family: "IBM Plex Mono", monospace;
+        direction: ltr; /* لضمان عرض الرقم الثنائي من اليسار لليمين */
+        font-weight: 700;
+      }
+      /* تصميم زر رئيسي */
+      .step-button {
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        font-weight: 700;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+      }
+      .step-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+      .step-button:not(:disabled):hover {
+        transform: translateY(-1px);
+      }
+      /* تنسيق خاص للصفوف السابقة */
+      .past-step-row {
+        color: #4b5563; /* Gray-600 */
+      }
+      .separator-row {
+        background-color: #6366f1; /* Indigo-500 */
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        letter-spacing: 0.05em;
+      }
+      .conversion-box {
+        border: 2px solid #e5e7eb;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+      }
+      .conversion-box h2 {
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto py-12">
+      <div class="container-card p-6 md:p-10 rounded-xl">
+        <h1
+          class="text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-10"
+        >
+          محول الأعداد الثنائي والعشري الحقيقية (خطوة بخطوة)
+        </h1>
+
+        <!-- قسم التحويل من عشري إلى ثنائي -->
+        <div class="conversion-box border-emerald-500">
+          <h2 class="text-2xl font-bold text-emerald-700">
+            ① التحويل من عشري (Decimal) إلى ثنائي (Binary)
+          </h2>
+          <p class="text-gray-600 mb-4">
+            نستخدم **القسمة المتكررة على 2** للجزء الصحيح، و**الضرب المتكرر في
+            2** للجزء الكسري.
+          </p>
+          <div class="flex flex-col md:flex-row gap-4 mb-8">
+            <input
+              type="text"
+              id="decimalInput"
+              placeholder="أدخل عدداً عشرياً (مثل 45.625)"
+              class="flex-grow p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg text-right"
+              dir="ltr"
+              inputmode="decimal"
+            />
+            <button
+              id="convertDecToBinButton"
+              onclick="startConversion('decToBin')"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white step-button transition duration-200"
+            >
+              تحويل إلى ثنائي
+            </button>
+          </div>
+        </div>
+
+        <!-- قسم التحويل من ثنائي إلى عشري -->
+        <div class="conversion-box border-blue-500">
+          <h2 class="text-2xl font-bold text-blue-700">
+            ② التحويل من ثنائي (Binary) إلى عشري (Decimal)
+          </h2>
+          <p class="text-gray-600 mb-4">
+            نستخدم **أوزان القوى الموجبة** (2ⁿ) للجزء الصحيح، و**أوزان القوى
+            السالبة** (2⁻ⁿ) للجزء الكسري.
+          </p>
+          <div class="flex flex-col md:flex-row gap-4 mb-8">
+            <input
+              type="text"
+              id="binaryInput"
+              placeholder="أدخل عدداً ثنائياً (مثل 101101.101)"
+              class="flex-grow p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg text-right mono-font"
+              dir="ltr"
+            />
+            <button
+              id="convertBinToDecButton"
+              onclick="startConversion('binToDec')"
+              class="bg-blue-600 hover:bg-blue-700 text-white step-button transition duration-200"
+            >
+              تحويل إلى عشري
+            </button>
+          </div>
+        </div>
+
+        <!-- رسالة الخطأ أو التنبيه -->
+        <div
+          id="message"
+          class="hidden bg-red-100 border-r-4 border-red-500 text-red-700 p-4 mb-6 rounded font-medium"
+        ></div>
+
+        <!-- قسم النتائج والخطوات المشترك -->
+        <div id="resultsSection" class="hidden">
+          <!-- النتيجة النهائية/المؤقتة -->
+          <div id="resultBox" class="p-6 rounded-lg mb-8 border-l-4">
+            <h2 class="text-xl font-bold mb-2">
+              <span id="resultTypeTitle">النتيجة</span>:
+            </h2>
+            <p
+              class="text-3xl md:text-4xl font-extrabold text-indigo-700 mono-font"
+            >
+              <span id="inputDisplay"></span>
+              <span class="text-gray-400">يُكافئ</span>
+              <span id="outputDisplay"></span>
+            </p>
+          </div>
+
+          <!-- جدول الخطوات -->
+          <h2
+            class="text-2xl font-bold text-gray-800 mb-4 border-b-2 pb-1 border-gray-200"
+          >
+            الخطوات: <span id="currentStepTitle"></span>
+          </h2>
+          <div class="overflow-x-auto mb-6">
+            <table
+              class="min-w-full divide-y divide-gray-200 rounded-lg overflow-hidden"
+            >
+              <thead>
+                <tr id="tableHeaderRow" class="text-lg">
+                  <!-- سيتم تحديث الأعمدة هنا بواسطة JavaScript -->
+                </tr>
+              </thead>
+              <tbody
+                id="stepsTableBody"
+                class="bg-white divide-y divide-gray-200"
+              >
+                <!-- سيتم إدراج جميع صفوف الخطوات هنا بواسطة JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- أزرار التنقل -->
+          <div class="flex justify-between items-center mt-6">
+            <button
+              id="prevButton"
+              onclick="previousStep()"
+              class="step-button bg-gray-300 hover:bg-gray-400 text-gray-800"
+              disabled
+            >
+              &larr; الخطوة السابقة
+            </button>
+            <span class="text-gray-500 font-medium text-sm md:text-base">
+              (خطوة <span id="currentStepDisplay">0</span> من
+              <span id="totalStepsDisplay">0</span>)
+            </span>
+            <button
+              id="nextButton"
+              onclick="nextStep()"
+              class="step-button bg-blue-600 hover:bg-blue-700 text-white"
+              disabled
+            >
+              الخطوة التالية &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // المتغيرات العامة لحالة التحويل
+      let conversionSteps = [];
+      let finalOutput = "";
+      let currentStepIndex = -1; // -1 يعني قبل بدء الخطوة الأولى
+      let originalInput = "";
+      let integerStepsCount = 0;
+      let currentConversionType = ""; // 'decToBin' or 'binToDec'
+      const MAX_FRACTIONAL_STEPS = 12;
+
+      // عناصر الواجهة المشتركة
+      const messageDiv = document.getElementById("message");
+      const resultsSection = document.getElementById("resultsSection");
+      const resultBox = document.getElementById("resultBox");
+      const resultTypeTitle = document.getElementById("resultTypeTitle");
+      const inputDisplay = document.getElementById("inputDisplay");
+      const outputDisplay = document.getElementById("outputDisplay");
+      const stepsTableBody = document.getElementById("stepsTableBody");
+      const currentStepTitle = document.getElementById("currentStepTitle");
+      const tableHeaderRow = document.getElementById("tableHeaderRow");
+      const prevButton = document.getElementById("prevButton");
+      const nextButton = document.getElementById("nextButton");
+      const currentStepDisplay = document.getElementById("currentStepDisplay");
+      const totalStepsDisplay = document.getElementById("totalStepsDisplay");
+
+      // عناصر الواجهة الخاصة بالمدخلات
+      const decimalInput = document.getElementById("decimalInput");
+      const binaryInput = document.getElementById("binaryInput");
+
+      /**
+       * دالة مساعدة لعرض رسالة خطأ أو تنبيه
+       */
+      function displayMessage(text, type = "error") {
+        messageDiv.textContent = text;
+        messageDiv.className = `p-4 mb-6 rounded font-medium transition duration-300`;
+        messageDiv.classList.remove("hidden");
+
+        if (type === "error") {
+          messageDiv.classList.add(
+            "bg-red-100",
+            "border-red-500",
+            "text-red-700",
+            "border-r-4"
+          );
+        } else if (type === "success") {
+          messageDiv.classList.add(
+            "bg-green-100",
+            "border-green-500",
+            "text-green-700",
+            "border-r-4"
+          );
+        } else {
+          // info
+          messageDiv.classList.add(
+            "bg-blue-100",
+            "border-blue-500",
+            "text-blue-700",
+            "border-r-4"
+          );
+        }
+      }
+
+      // ==========================================================
+      //         منطق التحويل 1: عشري إلى ثنائي (Dec to Bin)
+      // ==========================================================
+
+      function getDecToBinIntegerSteps(decimalInteger) {
+        let num = parseInt(decimalInteger);
+        const steps = [];
+
+        if (num === 0) return { steps: [], binary: "0" };
+
+        while (num > 0) {
+          const remainder = num % 2;
+          const quotient = Math.floor(num / 2);
+
+          steps.push({
+            phase: "integer",
+            type: "division",
+            dividend: num,
+            quotient: quotient,
+            remainder: remainder,
+          });
+          num = quotient;
+        }
+
+        const binary = steps
+          .map((step) => step.remainder)
+          .reverse()
+          .join("");
+        return { steps, binary };
+      }
+
+      function getDecToBinFractionalSteps(fractionalPart, maxSteps) {
+        let frac = fractionalPart;
+        const steps = [];
+        let currentStep = 1;
+
+        if (frac === 0) return { steps: [], binary: "" };
+
+        while (frac > 0 && currentStep <= maxSteps) {
+          const result = frac * 2;
+          const integerPart = Math.floor(result);
+          const newFractional = result - integerPart;
+
+          steps.push({
+            phase: "fractional",
+            type: "multiplication",
+            fraction: frac,
+            result: result.toFixed(maxSteps + 1),
+            integerPart: integerPart,
+            newFraction: newFractional,
+          });
+
+          frac = newFractional;
+          currentStep++;
+        }
+
+        const binary = steps.map((step) => step.integerPart).join("");
+        return { steps, binary };
+      }
+
+      function handleDecToBinConversion(rawInput) {
+        const floatValue = parseFloat(rawInput);
+        if (rawInput === "" || isNaN(floatValue) || floatValue < 0) {
+          displayMessage(
+            "الإدخال غير صالح. يرجى إدخال عدد عشري صحيح أو حقيقي وموجب."
+          );
+          return false;
+        }
+
+        const parts = rawInput.split(".");
+        const integerPart = parseInt(parts[0] || 0);
+        let fractionalPart = 0;
+
+        if (parts.length > 1 && parts[1].length > 0) {
+          fractionalPart = parseFloat("0." + parts[1]);
+        }
+
+        const { steps: intSteps, binary: intBinary } =
+          getDecToBinIntegerSteps(integerPart);
+        integerStepsCount = intSteps.length;
+        const { steps: fracSteps, binary: fracBinary } =
+          getDecToBinFractionalSteps(fractionalPart, MAX_FRACTIONAL_STEPS);
+
+        conversionSteps = [...intSteps, ...fracSteps];
+
+        let finalIntBinary = intBinary || "0";
+        if (integerPart === 0 && intBinary === "0") finalIntBinary = "0";
+
+        finalOutput = fracBinary
+          ? `${finalIntBinary}.${fracBinary}`
+          : finalIntBinary;
+
+        return true;
+      }
+
+      // ==========================================================
+      //         منطق التحويل 2: ثنائي إلى عشري (Bin to Dec)
+      // ==========================================================
+
+      function getBinToDecSteps(binaryInput) {
+        const parts = binaryInput.split(".");
+        const intPart = parts[0];
+        const fracPart = parts[1] || "";
+        const steps = [];
+        let decimalSum = 0;
+
+        // 1. الجزء الصحيح (قوى موجبة)
+        for (let i = 0; i < intPart.length; i++) {
+          const bit = parseInt(intPart[intPart.length - 1 - i]); // نبدأ من اليمين (2^0)
+          const power = i;
+          const weight = Math.pow(2, power);
+          const result = bit * weight;
+          decimalSum += result;
+
+          steps.push({
+            phase: "integer",
+            type: "weight_multiplication",
+            bit: bit,
+            power: power,
+            weight: weight,
+            result: result,
+            currentSum: decimalSum,
+            binaryPosition: intPart.length - 1 - i, // موقع البت في السلسلة
+          });
+        }
+
+        integerStepsCount = steps.length;
+
+        // 2. الجزء الكسري (قوى سالبة)
+        let currentPower = -1;
+        for (let i = 0; i < fracPart.length; i++) {
+          const bit = parseInt(fracPart[i]);
+          const power = currentPower;
+          const weight = Math.pow(2, power);
+          const result = bit * weight;
+          decimalSum += result;
+
+          steps.push({
+            phase: "fractional",
+            type: "weight_multiplication",
+            bit: bit,
+            power: power,
+            weight: weight,
+            result: result,
+            currentSum: decimalSum,
+            binaryPosition: intPart.length + 1 + i, // موقع البت في السلسلة
+          });
+
+          currentPower--;
+        }
+
+        return { steps, decimal: decimalSum.toFixed(MAX_FRACTIONAL_STEPS) };
+      }
+
+      function handleBinToDecConversion(rawInput) {
+        // التحقق من أن الإدخال يحتوي على 0 أو 1 أو نقطة واحدة فقط
+        if (
+          !/^[01]+(\.[01]*)?$/.test(rawInput) ||
+          rawInput === "" ||
+          rawInput === "."
+        ) {
+          displayMessage(
+            "الإدخال الثنائي غير صالح. يرجى إدخال أصفار وآحاد فقط، مع فاصل عشري واحد كحد أقصى."
+          );
+          return false;
+        }
+
+        const { steps, decimal } = getBinToDecSteps(rawInput);
+        conversionSteps = steps;
+        finalOutput = decimal.replace(/\.?0+$/, ""); // إزالة الأصفار الزائدة في النهاية إذا كان العدد منتهياً
+        integerStepsCount = steps.filter((s) => s.phase === "integer").length;
+
+        return true;
+      }
+
+      // ==========================================================
+      //         منطق بدء التحويل المشترك (Controller)
+      // ==========================================================
+
+      function startConversion(type) {
+        // إعادة ضبط الحالة المشتركة
+        conversionSteps = [];
+        finalOutput = "";
+        currentStepIndex = -1;
+        originalInput = "";
+        integerStepsCount = 0;
+        currentConversionType = type;
+
+        resultsSection.classList.add("hidden");
+        messageDiv.classList.add("hidden");
+        stepsTableBody.innerHTML = "";
+
+        let success = false;
+
+        if (type === "decToBin") {
+          originalInput = decimalInput.value.trim().replace(/,/g, ".");
+          success = handleDecToBinConversion(originalInput);
+          if (success) {
+            inputDisplay.innerHTML = `(<span class="text-emerald-700">${originalInput}</span>)₁₀`;
+            resultTypeTitle.textContent = "الرقم الثنائي الناتج";
+            resultBox.className =
+              "bg-emerald-50 p-6 rounded-lg mb-8 border-l-4 border-emerald-600";
+          }
+        } else if (type === "binToDec") {
+          originalInput = binaryInput.value.trim().replace(/,/g, ".");
+          success = handleBinToDecConversion(originalInput);
+          if (success) {
+            inputDisplay.innerHTML = `(<span class="text-blue-700 mono-font">${originalInput}</span>)₂`;
+            resultTypeTitle.textContent = "الرقم العشري الناتج";
+            resultBox.className =
+              "bg-blue-50 p-6 rounded-lg mb-8 border-l-4 border-blue-600";
+          }
+        }
+
+        if (!success) return;
+
+        // تهيئة العرض للبدء
+        if (conversionSteps.length > 0) {
+          currentStepIndex = 0;
+          nextButton.disabled = false;
+        } else {
+          // حالة خاصة: الإدخال 0 أو 0.0
+          if (parseFloat(originalInput) === 0 || originalInput === "0") {
+            finalOutput = type === "decToBin" ? "0" : "0";
+            currentStepIndex = -1;
+          }
+        }
+
+        resultsSection.classList.remove("hidden");
+        updateUI();
+      }
+
+      /**
+       * دالة تحديث الواجهة المشتركة.
+       */
+      function updateUI() {
+        const totalSteps = conversionSteps.length;
+        const isLastStep = currentStepIndex === totalSteps - 1;
+
+        prevButton.disabled = currentStepIndex <= 0;
+        nextButton.disabled = isLastStep;
+
+        currentStepDisplay.textContent = currentStepIndex + 1;
+        totalStepsDisplay.textContent = totalSteps;
+
+        // التعامل مع حالة الإدخال صفر (Zero Input)
+        if (totalSteps === 0) {
+          const inputBase = currentConversionType === "decToBin" ? "₁₀" : "₂";
+          const outputBase = currentConversionType === "decToBin" ? "₂" : "₁₀";
+          outputDisplay.textContent = `(0)${outputBase}`;
+          displayMessage(
+            `التحويل مكتمل! العدد (${originalInput})${inputBase} يُكافئ (0)${outputBase}.`,
+            "success"
+          );
+          return;
+        }
+
+        stepsTableBody.innerHTML = "";
+
+        let currentIntOutput = currentConversionType === "decToBin" ? "" : 0;
+        let currentFracOutput = currentConversionType === "decToBin" ? "" : 0;
+
+        // ------------------------------------------------------------------
+        // 1. عرض جميع الخطوات حتى الخطوة الحالية
+        // ------------------------------------------------------------------
+
+        let integerPartFinished = false;
+
+        conversionSteps.forEach((step, i) => {
+          if (i > currentStepIndex) return;
+
+          const isCurrent = i === currentStepIndex;
+          const isIntegerPhase = step.phase === "integer";
+
+          // ----------------------------------------------------
+          // إضافة فاصل بصري
+          // ----------------------------------------------------
+          if (
+            !integerPartFinished &&
+            i === integerStepsCount &&
+            integerStepsCount > 0 &&
+            totalSteps > integerStepsCount
+          ) {
+            const separatorRow = stepsTableBody.insertRow();
+            separatorRow.className = "separator-row";
+            const title =
+              currentConversionType === "decToBin"
+                ? "انتقال إلى تحويل الجزء الكسري (الضرب في 2)"
+                : "انتقال إلى تحويل الجزء الكسري (قوى 2 السلبية)";
+            separatorRow.innerHTML = `<td colspan="4" class="py-3 px-6 text-xl">${title}</td>`;
+            integerPartFinished = true;
+          }
+
+          // ----------------------------------------------------
+          // 2. تحديث النتيجة الجزئية وعنوان الجدول
+          // ----------------------------------------------------
+          if (currentConversionType === "decToBin") {
+            if (isIntegerPhase) {
+              currentStepTitle.textContent = `الجزء 1: تحويل الجزء الصحيح (${step.dividend}...) بواسطة القسمة على 2`;
+              currentIntOutput = step.remainder + currentIntOutput;
+            } else {
+              currentStepTitle.textContent = `الجزء 2: تحويل الجزء الكسري (${step.fraction.toFixed(
+                3
+              )}...) بواسطة الضرب في 2`;
+              currentFracOutput += step.integerPart;
+            }
+          } else {
+            // binToDec
+            currentIntOutput = currentFracOutput = step.currentSum;
+            if (isIntegerPhase) {
+              currentStepTitle.textContent = `الجزء 1: تحويل الجزء الصحيح (${
+                originalInput.split(".")[0]
+              }) بواسطة أوزان القوى الموجبة`;
+            } else {
+              currentStepTitle.textContent = `الجزء 2: تحويل الجزء الكسري (${
+                originalInput.split(".")[1] || ""
+              }) بواسطة أوزان القوى السلبية`;
+            }
+          }
+
+          // ----------------------------------------------------
+          // 3. تحديث رأس الجدول حسب نوع العملية
+          // ----------------------------------------------------
+          if (isCurrent) {
+            if (currentConversionType === "decToBin") {
+              tableHeaderRow.className = "table-header-dec text-lg";
+              if (isIntegerPhase) {
+                tableHeaderRow.innerHTML = `
+                                <th scope="col" class="px-6 py-3 text-center">القيمة الحالية</th>
+                                <th scope="col" class="px-6 py-3 text-center">العملية: ÷ 2</th>
+                                <th scope="col" class="px-6 py-3 text-center">ناتج القسمة (القيمة الجديدة)</th>
+                                <th scope="col" class="px-6 py-3 text-center">الباقي (البت)</th>
+                            `;
+              } else {
+                tableHeaderRow.innerHTML = `
+                                <th scope="col" class="px-6 py-3 text-center">الكسر الحالي</th>
+                                <th scope="col" class="px-6 py-3 text-center">العملية: × 2</th>
+                                <th scope="col" class="px-6 py-3 text-center">ناتج الضرب</th>
+                                <th scope="col" class="px-6 py-3 text-center">الجزء الصحيح (البت)</th>
+                            `;
+              }
+            } else {
+              // binToDec
+              tableHeaderRow.className = "table-header-bin text-lg";
+              tableHeaderRow.innerHTML = `
+                            <th scope="col" class="px-6 py-3 text-center">البت</th>
+                            <th scope="col" class="px-6 py-3 text-center">قوة 2 (الوزن)</th>
+                            <th scope="col" class="px-6 py-3 text-center">العملية: البت × الوزن</th>
+                            <th scope="col" class="px-6 py-3 text-center">النتيجة الجزئية والمجموع التراكمي</th>
+                        `;
+            }
+          }
+
+          // ----------------------------------------------------
+          // 4. إنشاء صف الخطوة
+          // ----------------------------------------------------
+          const row = stepsTableBody.insertRow();
+          row.className = isCurrent
+            ? "bg-yellow-50 font-semibold transition duration-150 border-r-4 border-yellow-500"
+            : "bg-white text-gray-700 past-step-row hover:bg-gray-100";
+
+          let cellContent;
+
+          if (currentConversionType === "decToBin") {
+            if (isIntegerPhase) {
+              cellContent = `
+                            <td class="px-6 py-3 whitespace-nowrap text-lg text-center">${
+                              step.dividend
+                            }</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-lg text-center">÷ 2</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-lg text-center text-indigo-700">${
+                              step.quotient
+                            }</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-2xl text-center mono-font ${
+                              isCurrent
+                                ? "text-red-700 font-extrabold highlight-cell border-l-4 border-red-500"
+                                : "text-green-700 font-bold"
+                            }">
+                                ${step.remainder}
+                            </td>
+                        `;
+            } else {
+              cellContent = `
+                            <td class="px-6 py-3 whitespace-nowrap text-lg text-center mono-font">${step.fraction.toFixed(
+                              MAX_FRACTIONAL_STEPS
+                            )}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-lg text-center">× 2</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-lg text-center text-indigo-700 mono-font">${
+                              step.result
+                            }</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-2xl text-center mono-font ${
+                              isCurrent
+                                ? "text-red-700 font-extrabold highlight-cell border-l-4 border-red-500"
+                                : "text-green-700 font-bold"
+                            }">
+                                ${step.integerPart}
+                            </td>
+                        `;
+            }
+          } else {
+            // binToDec
+            const sign = step.power < 0 ? "" : "+";
+            cellContent = `
+                        <td class="px-6 py-3 whitespace-nowrap text-2xl text-center mono-font">${
+                          step.bit
+                        }</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-lg text-center">2<sup>${sign}${
+              step.power
+            }</sup> (أو ${step.weight
+              .toFixed(MAX_FRACTIONAL_STEPS)
+              .replace(/\.?0+$/, "")})</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-lg text-center text-indigo-700 mono-font">
+                            ${step.bit} × ${step.weight
+              .toFixed(MAX_FRACTIONAL_STEPS)
+              .replace(/\.?0+$/, "")} = <span class="${
+              isCurrent ? "font-bold" : ""
+            }">${step.result
+              .toFixed(MAX_FRACTIONAL_STEPS)
+              .replace(/\.?0+$/, "")}</span>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-2xl text-center mono-font ${
+                          isCurrent
+                            ? "text-red-700 font-extrabold highlight-cell border-l-4 border-red-500"
+                            : "text-green-700 font-bold"
+                        }">
+                            ${step.currentSum
+                              .toFixed(MAX_FRACTIONAL_STEPS)
+                              .replace(/\.?0+$/, "")}
+                        </td>
+                    `;
+          }
+
+          row.innerHTML += cellContent;
+        });
+
+        // تحديث الرقم الناتج حتى هذه الخطوة
+        const finalBase = currentConversionType === "decToBin" ? "₂" : "₁₀";
+        let currentOutputText;
+
+        if (currentConversionType === "decToBin") {
+          const intPart = currentIntOutput || "0";
+          currentOutputText = currentFracOutput
+            ? `${intPart}.${currentFracOutput}`
+            : intPart;
+        } else {
+          // binToDec
+          currentOutputText = currentIntOutput
+            .toFixed(MAX_FRACTIONAL_STEPS)
+            .replace(/\.?0+$/, "");
+        }
+
+        outputDisplay.innerHTML = `(<span class="text-indigo-700">${currentOutputText}</span>)${finalBase}`;
+
+        if (isLastStep) {
+          displayMessage(
+            `التحويل مكتمل! النتيجة النهائية هي ${finalOutput}.`,
+            "success"
+          );
+        } else if (currentStepIndex === 0 && totalSteps > 0) {
+          displayMessage(
+            'اضغط على "الخطوة التالية" لعرض المرحلة الأولى من التحويل.',
+            "info"
+          );
+        } else {
+          messageDiv.classList.add("hidden");
+        }
+      }
+
+      function nextStep() {
+        if (currentStepIndex < conversionSteps.length - 1) {
+          currentStepIndex++;
+          updateUI();
+        }
+      }
+
+      function previousStep() {
+        if (currentStepIndex > 0) {
+          currentStepIndex--;
+          updateUI();
+        }
+      }
+
+      // لضمان أن الزر يعمل أيضاً عند ضغط Enter في حقل الإدخال
+      decimalInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          startConversion("decToBin");
+        }
+      });
+      binaryInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          startConversion("binToDec");
+        }
+      });
+    </script>
+  </body>
+</html>

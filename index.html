@@ -3,10 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>الصفحة الرئيسية - مقرر الحاسوب (ثالث ثانوي)</title>
+    <title>الصفحة الرئيسية - مقرر الحاسوب</title>
     <!-- تحميل Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 1. مكتبة Animate.css لجعل ظهور العناصر سلساً وجميلاً -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
     <style>
+      /* --- التمرير السلس للصفحة بأكملها --- */
+      html {
+        scroll-behavior: smooth;
+      }
       /* خط رئيسي عربي جميل */
       @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@400;700&display=swap");
       body {
@@ -15,47 +24,108 @@
         color: #1e293b; /* لون نص داكن */
       }
       .hero-section {
-        background-image: linear-gradient(
-            to right,
-            rgba(55, 65, 81, 0.8),
-            rgba(17, 24, 39, 0.9)
-          ),
-          url("https://placehold.co/1200x500/1f2937/ffffff?text=الخوارزميات");
-        background-size: cover;
-        background-position: center;
+        /* إعداد الحاوية لوضع الـ Canvas كخلفية مطلقة */
+        position: relative;
+        background-color: #111827; /* خلفية داكنة */
+        overflow: hidden;
       }
+      #networkCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1; /* يجب أن تكون تحت المحتوى النصي */
+        opacity: 0.6; /* لجعلها خفيفة وغير مزعجة */
+      }
+      .hero-content {
+        position: relative;
+        z-index: 2; /* تأكد من أن المحتوى النصي فوق الـ Canvas */
+      }
+      /* تحسين سلاسة الانتقال للبطاقات */
       .card-container {
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition: transform 0.4s ease-out, box-shadow 0.4s ease-out;
       }
       .card-container:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-10px); /* حركة أجمل للأعلى */
+        box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3); /* ظل أقوى */
       }
-      /* تصميم مخصص للروابط داخل البطاقات التي لا تحتوي على أزرار فرعية */
+      /* تأثير هوفر للروابط داخل البطاقات */
       .card-link h3 {
         border-bottom: 3px solid transparent;
-        transition: border-color 0.3s;
+        transition: border-color 0.4s;
       }
       .card-link:hover h3 {
         border-color: #f59e0b; /* Amber-500 */
+      }
+      /* تحسين تصميم الأزرار الفرعية */
+      .sub-button {
+        transition: all 0.3s ease;
+        background-color: #d1fae5; /* green-100 */
+        color: #065f46; /* green-700 */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      .sub-button:hover {
+        background-color: #a7f3d0; /* green-200 */
+        transform: scale(1.02);
+      }
+
+      /* تحسين شكل الـ Footer */
+      .page-footer {
+        /* تدرج خفيف للخلفية */
+        background-image: linear-gradient(to right, #1e293b, #0f172a);
+      }
+
+      /* تأثير Hover لجزء المطور */
+      .developer-card-hover {
+        transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .developer-card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.4); /* ظل بلون أزرق داكن */
+      }
+
+      /* تنسيق أيقونات التواصل الاجتماعي */
+      .social-icon {
+        transition: color 0.3s, transform 0.3s;
+      }
+      .social-icon:hover {
+        transform: scale(1.2);
+      }
+      /* ألوان مخصصة عند الهوفر */
+      .social-linkedin:hover {
+        color: #0077b5;
+      }
+      .social-twitter:hover {
+        color: #1da1f2;
+      }
+      .social-github:hover {
+        color: #6e5494;
       }
     </style>
   </head>
   <body>
     <!-- قسم الهيرو (الترويسة الرئيسية) -->
     <header class="hero-section py-20 text-white shadow-2xl">
-      <div class="max-w-6xl mx-auto px-4 text-center">
-        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 animate-fadeInDown">
-          مقرر الحاسوب - الصف الثالث الثانوي (السودان)
+      <!-- CANVAS: سيتم وضعها كخلفية متحركة -->
+      <canvas id="networkCanvas"></canvas>
+
+      <div class="hero-content max-w-6xl mx-auto px-4 text-center">
+        <!-- استخدام Animate.css: fadeInDown ومدة أطول (animate__slow) -->
+        <h1
+          class="text-5xl md:text-6xl font-extrabold mb-4 animate__animated animate__fadeInDown animate__slow"
+        >
+          مقرر الحاسوب - الصف الثالث الثانوي
         </h1>
         <p
-          class="text-xl md:text-2xl font-light mb-8 text-gray-300 animate-fadeInUp"
+          class="text-xl md:text-2xl font-light mb-8 text-gray-300 animate__animated animate__fadeInDown animate__delay-1s"
         >
           دليلكم الشامل لفهم الخوارزميات، هياكل البيانات، ونظم التشفير.
         </p>
+        <!-- الزر الرئيسي: تم إضافة انتقال سلس (transition-all) وظل قوي -->
         <a
           href="#sections"
-          class="inline-block bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+          class="inline-block bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-3 px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 hover:shadow-amber-500/50 animate__animated animate__fadeInUp animate__delay-2s"
         >
           ابدأ رحلة التعلم
         </a>
@@ -65,23 +135,26 @@
     <!-- أقسام المقرر الرئيسية -->
     <main id="sections" class="py-16">
       <div class="max-w-6xl mx-auto px-4">
+        <!-- عنوان الأقسام -->
         <h2
-          class="text-4xl font-bold text-center mb-12 text-indigo-700 border-b-4 border-indigo-200 inline-block pb-1"
+          class="text-4xl font-bold text-center mb-12 text-indigo-700 border-b-4 border-indigo-200 inline-block pb-1 animate__animated animate__zoomIn animate__delay-1s"
         >
-          الخوارزميات
+          أقسام المقرر الأساسية
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <!-- 1. خوارزميات الترتيب (Sorting) - تم التعديل إلى Div مع أزرار داخلية -->
-
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+          id="cards-container"
+        >
+          <!-- 1. خوارزميات الترتيب (Sorting) -->
           <a
             href="sorting.html"
-            class="card-link block bg-white p-6 rounded-xl shadow-xl border-t-4 border-indigo-200 hover:border-indigo-600 transition"
+            class="card-link group block bg-white p-6 rounded-xl shadow-xl border-t-4 border-indigo-500 hover:border-indigo-600 transition card-container"
           >
             <div class="text-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-12 w-12 text-red-500 mx-auto mb-3"
+                class="h-12 w-12 text-indigo-500 mx-auto mb-3"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -94,7 +167,7 @@
                 />
               </svg>
               <h3
-                class="text-2xl font-extrabold text-gray-800 mb-2 border-b-2 border-transparent group-hover:border-red-500 transition-all"
+                class="text-2xl font-extrabold text-gray-800 mb-2 border-b-2 border-transparent group-hover:border-indigo-500 transition-all"
               >
                 الترتيب (Sorting)
               </h3>
@@ -103,10 +176,10 @@
               </p>
             </div>
           </a>
-          <!-- 2. خوارزميات البحث (Searching) - بقي كبطاقة رابط واحدة -->
+          <!-- 2. خوارزميات البحث (Searching) -->
           <a
             href="searching.html"
-            class="card-link block bg-white p-6 rounded-xl shadow-xl border-t-4 border-blue-500 hover:border-blue-600 transition"
+            class="card-link group block bg-white p-6 rounded-xl shadow-xl border-t-4 border-blue-500 hover:border-blue-600 transition card-container"
           >
             <div class="text-center">
               <svg
@@ -123,7 +196,9 @@
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              <h3 class="text-2xl font-extrabold text-gray-800 mb-2">
+              <h3
+                class="text-2xl font-extrabold text-gray-800 mb-2 border-b-2 border-transparent group-hover:border-blue-500 transition-all"
+              >
                 البحث (Searching)
               </h3>
               <p class="text-gray-600 text-sm">
@@ -132,7 +207,7 @@
             </div>
           </a>
 
-          <!-- 3. خوارزميات التشفير (Cryptography) - تم التعديل إلى Div مع أزرار داخلية -->
+          <!-- 3. خوارزميات التشفير (Cryptography) -->
           <div
             class="card-container block bg-white p-6 rounded-xl shadow-xl border-t-4 border-green-500 transition group"
           >
@@ -160,27 +235,27 @@
                 أمن المعلومات، تشفير قيصر، وخوارزميات ضغط هوفمان.
               </p>
             </div>
-            <!-- الأزرار الفرعية للتشفير -->
+            <!-- الأزرار الفرعية للتشفير (تم تطبيق كلاس sub-button) -->
             <div class="space-y-2 pt-4 border-t border-gray-200">
               <a
                 href="caesar_cipher.html"
-                class="w-full block text-center bg-green-100 hover:bg-green-200 text-green-700 py-1.5 px-4 rounded-lg font-medium transition duration-200 shadow-md hover:shadow-lg"
+                class="w-full block text-center sub-button py-1.5 px-4 rounded-lg font-medium shadow-md hover:shadow-lg"
               >
                 خوارزمية يوليوس قيصر
               </a>
               <a
                 href="huffman_coding/index.html"
-                class="w-full block text-center bg-green-100 hover:bg-green-200 text-green-700 py-1.5 px-4 rounded-lg font-medium transition duration-200 shadow-md hover:shadow-lg"
+                class="w-full block text-center sub-button py-1.5 px-4 rounded-lg font-medium shadow-md hover:shadow-lg"
               >
                 خوارزمية هوفمان
               </a>
             </div>
           </div>
 
-          <!-- 4. التحويلات العددية (Number Systems) - بقي كبطاقة رابط واحدة -->
+          <!-- 4. التحويلات العددية (Number Systems) -->
           <a
-            href="conversions.html"
-            class="card-link block bg-white p-6 rounded-xl shadow-xl border-t-4 border-amber-500 hover:border-amber-600 transition"
+            href="converter.html"
+            class="card-link group block bg-white p-6 rounded-xl shadow-xl border-t-4 border-amber-500 hover:border-amber-600 transition card-container"
           >
             <div class="text-center">
               <svg
@@ -197,7 +272,9 @@
                   d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-2.414-2.414a1 1 0 00-.707-.293H7a2 2 0 00-2 2v10a2 2 0 002 2z"
                 />
               </svg>
-              <h3 class="text-2xl font-extrabold text-gray-800 mb-2">
+              <h3
+                class="text-2xl font-extrabold text-gray-800 mb-2 border-b-2 border-transparent group-hover:border-amber-500 transition-all"
+              >
                 التحويلات العددية
               </h3>
               <p class="text-gray-600 text-sm">
@@ -209,53 +286,287 @@
       </div>
     </main>
 
-    <!-- قسم معلومات المقرر والمبرمج -->
+    <!-- قسم معلومات المطور -->
     <section class="bg-gray-100 py-12">
       <div class="max-w-6xl mx-auto px-4">
-        <h3 class="text-3xl font-bold text-center mb-8 text-gray-800">
-          عن المقرر والمشروع
+        <h3
+          class="text-3xl font-bold text-center mb-10 text-gray-800 animate__animated animate__fadeInDown"
+        >
+          المطور وراء هذا المشروع
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-700">
+        <div
+          class="bg-white p-8 rounded-xl shadow-2xl border-l-4 border-indigo-500 max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-6 developer-card-hover"
+        >
+          <!-- الصورة الشخصية لضياء - أنيميشن مخصص: الظهور من اليسار -->
           <div
-            class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-400"
+            class="flex-shrink-0 animate__animated animate__fadeInLeft animate__delay-1s"
           >
-            <h4 class="text-xl font-semibold mb-3 text-indigo-600">
-              هدف المقرر
-            </h4>
-            <p class="leading-relaxed">
-              يهدف مقرر الحاسوب للصف الثالث الثانوي إلى تزويد الطلاب بالأسس
-              النظرية والعملية في علوم الحاسب، مع التركيز على مهارات حل المشكلات
-              والتفكير الخوارزمي اللازمة للنجاح في التخصصات الجامعية المستقبلية.
-            </p>
+            <img
+              src="image/deyaa.png"
+              alt="صورة المطور ضياء البشرى محمد"
+              class="w-40 h-40 rounded-full object-cover object-top shadow-xl border-4 border-indigo-200"
+              onerror="this.onerror=null; this.src='./image/deyaa.png'"
+            />
           </div>
 
-          <!-- إشارة لك كـ (ضياء) -->
+          <!-- تفاصيل المطور - أنيميشن مخصص: الظهور من اليمين -->
           <div
-            class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-400"
+            class="flex-grow text-center md:text-right animate__animated animate__fadeInRight animate__delay-1s"
           >
-            <h4 class="text-xl font-semibold mb-3 text-green-600">
-              لمحة عن المطور
+            <h4
+              class="text-2xl font-extrabold mb-1 text-indigo-700 animate__animated animate__fadeInRight animate__delay-1s"
+            >
+              ضياء البشرى محمد
             </h4>
-            <p class="leading-relaxed">
-              تم تطوير هذا المشروع التوضيحي بواسطة **ضياء**، وهو مبرمج ويب متخصص
-              يستخدم إطار العمل **Laravel** (لافيل) في بناء تطبيقات الويب
-              الاحترافية. هذه الصفحة هي محاكاة تفاعلية لمحتوى المقرر.
+            <p
+              class="text-lg font-semibold mb-3 text-green-600 animate__animated animate__fadeInRight animate__delay-1s"
+            >
+              مطور تطبيقات ويب (Laravel Developer)
             </p>
+            <p
+              class="leading-relaxed text-gray-700 text-sm animate__animated animate__fadeInRight animate__delay-1s"
+            >
+              مطور تطبيقات ويب يتمتع بمهارات عالية وخبرة واسعة في بناء أنظمة
+              ومواقع معقدة، متخصصة في Full Stack و إطار العمل
+              <span class="font-bold text-red-500">Laravel</span>. لديَّ خبرة
+              مُثبتة في تصميم وتنفيذ منصات إدارة متكاملة ومنصات خدمات لتحسين
+              الإنتاجية، كما أعمل في مجال القيادة الفنية للفرق وحل التحديات
+              التقنية الصعبة.
+            </p>
+            <div
+              class="mt-4 flex flex-wrap justify-center md:justify-end gap-3 text-sm animate__animated animate__fadeInUp animate__delay-2s"
+            >
+              <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full"
+                >PHP</span
+              >
+              <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full"
+                >MySQL</span
+              >
+              <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full"
+                >JavaScript</span
+              >
+              <!-- زر الموقع الشخصي بتأثير جميل -->
+              <a
+                href="https://deyaa.alsultansudan.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded-full font-bold transition-all duration-300 transform hover:scale-105 shadow-md"
+              >
+                موقعي الشخصي
+              </a>
+            </div>
+
+            <!-- أزرار التواصل الاجتماعي - تم نقلها هنا -->
+            <div
+              class="mt-6 pt-4 border-t text-center border-gray-200 flex justify-center md:justify-end space-x-6 space-x-reverse animate__animated animate__fadeInUp animate__delay-2s"
+            >
+              <!-- LinkedIn -->
+              <a
+                href="https://www.linkedin.com/in/Deyaa-Albushra-Mohamed"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="social-icon social-linkedin text-gray-500 hover:text-indigo-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM4 11h4v10H4zM6 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"
+                  />
+                </svg>
+              </a>
+              <!-- Twitter/X -->
+              <a
+                href="https://x.com/your_twitter_handle"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="social-icon social-twitter text-gray-500 hover:text-blue-500"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M18.9 3.2c.4 0 .7.1 1 .3.3.2.6.4.8.7.2.3.3.6.3 1s-.1.7-.3 1l-3 4-3 4c-.3.4-.6.7-1 .9-.4.2-.9.3-1.4.3s-1-.1-1.4-.3c-.4-.2-.7-.5-1-.9l-3-4-3-4c-.2-.3-.3-.6-.3-1s.1-.7.3-1c.2-.3.4-.6.7-.8.3-.2.6-.3 1-.3.4 0 .7.1 1 .3l2 2 3 4 3-4 2-2c.3-.2.6-.3 1-.3z"
+                  />
+                </svg>
+              </a>
+              <!-- GitHub -->
+              <a
+                href="https://github.com/your_github_profile"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="social-icon social-github text-gray-500 hover:text-gray-800"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M12 0c-6.63 0-12 5.37-12 12 0 5.31 3.43 9.8 8.21 11.38.6.11.82-.26.82-.57 0-.28-.01-1.01-.01-2.02-3.34.73-4.04-1.61-4.04-1.61-.55-1.4-1.34-1.78-1.34-1.78-1.09-.74.08-.73.08-.73 1.21.08 1.84 1.24 1.84 1.24 1.08 1.84 2.82 1.3 3.5.99.11-.77.42-1.3.77-1.6-2.67-.3-5.47-1.33-5.47-5.94 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3.12A11.5 11.5 0 0 1 12 5.86c1.02.04 2.05.15 3.03.44 2.29-.44 3.3-.12 3.3-.12.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.62-2.8 5.63-5.48 5.93.43.37.82 1.1.82 2.22 0 1.6-.01 2.89-.01 3.28 0 .31.22.68.83.57C20.57 21.8 24 17.31 24 12c0-6.63-5.37-12-12-12z"
+                  />
+                </svg>
+              </a>
+              <!-- Personal Website / Portfolio -->
+              <a
+                href="https://deyaa.alsultansudan.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="social-icon text-gray-500 hover:text-amber-500"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </a>
+            </div>
+            <!-- نهاية أزرار التواصل الاجتماعي -->
           </div>
         </div>
       </div>
     </section>
 
-    <!-- تذييل الصفحة (Footer) -->
-    <footer class="bg-gray-800 text-white py-8">
+    <!-- تذييل الصفحة (Footer) - تم إزالة أيقونات التواصل الاجتماعي منه -->
+    <footer
+      class="page-footer text-white py-8 animate__animated animate__fadeInUp animate__delay-3s"
+    >
       <div class="max-w-6xl mx-auto px-4 text-center">
-        <p class="mb-2 text-lg font-semibold">
-          وزارة التربية والتعليم - السودان
-        </p>
         <p class="text-sm text-gray-400">
-          جميع الحقوق محفوظة. مقرر الحاسوب (2025)
+          تم تصميم هذه المحاكاة التفاعلية بواسطة ضياء البشرى محمد.
         </p>
       </div>
     </footer>
+
+    <script>
+      window.onload = function () {
+        // كود الـ Canvas لتحريك الخلفية
+        const canvas = document.getElementById("networkCanvas");
+        const ctx = canvas.getContext("2d");
+        let particles = [];
+        const particleCount = 60;
+        const maxDistance = 100;
+
+        function resizeCanvas() {
+          canvas.width = canvas.parentElement.clientWidth;
+          canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        class Particle {
+          constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.radius = Math.random() * 1.5 + 0.5;
+            this.velocity = {
+              x: (Math.random() - 0.5) * 0.5,
+              y: (Math.random() - 0.5) * 0.5,
+            };
+            this.color = "rgba(255, 255, 255, 0.8)";
+          }
+
+          draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+          }
+
+          update() {
+            if (
+              this.x + this.radius > canvas.width ||
+              this.x - this.radius < 0
+            ) {
+              this.velocity.x = -this.velocity.x;
+            }
+            if (
+              this.y + this.radius > canvas.height ||
+              this.y - this.radius < 0
+            ) {
+              this.velocity.y = -this.velocity.y;
+            }
+
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+
+            this.draw();
+          }
+        }
+
+        function init() {
+          resizeCanvas();
+          particles = [];
+          for (let i = 0; i < particleCount; i++) {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            particles.push(new Particle(x, y));
+          }
+        }
+
+        function connectParticles() {
+          for (let i = 0; i < particleCount; i++) {
+            for (let j = i; j < particleCount; j++) {
+              const dx = particles[i].x - particles[j].x;
+              const dy = particles[i].y - particles[j].y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+
+              if (distance < maxDistance) {
+                const opacity = 1 - distance / maxDistance;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.2})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+
+        function animate() {
+          requestAnimationFrame(animate);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          connectParticles();
+
+          particles.forEach((particle) => {
+            particle.update();
+          });
+        }
+
+        // --- إضافة تأثير ظهور سلس للبطاقات (باستخدام JS لـ Animate.css) ---
+        const cards = document.querySelectorAll("#cards-container > *");
+        cards.forEach((card, index) => {
+          // تطبيق تأثير الظهور المتأخر لكل بطاقة على حدة
+          card.classList.add("animate__animated", "animate__fadeInUp");
+          // يتم إضافة تأخير بناءً على ترتيب البطاقة
+          card.style.animationDelay = `${0.2 * index + 1.5}s`; // يبدأ بعد 1.5 ثانية
+        });
+        // -----------------------------------------------------------------
+
+        window.addEventListener("resize", () => {
+          resizeCanvas();
+          init();
+        });
+
+        init();
+        animate();
+      };
+    </script>
   </body>
 </html>
